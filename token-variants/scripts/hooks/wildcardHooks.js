@@ -26,7 +26,7 @@ async function _renderTokenConfig(config, html) {
       config.actor?.prototypeToken?.flags['token-hud-wildcard']?.['default'] ||
       '';
 
-    const field = await renderTemplate('/modules/token-variants/templates/protoTokenElement.html', {
+    const field = await renderTemplate('/modules/token-variants/token-variants/templates/protoTokenElement.html', {
       defaultImg,
       disableHUDButton: config.object?.getFlag('token-variants', 'disableHUDButton'),
     });

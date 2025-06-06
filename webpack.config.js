@@ -6,7 +6,7 @@ module.exports = {
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'token-variants'),
-    publicPath: 'modules/token-variants/',
+    publicPath: 'modules/token-variants/token-variants/',
   },
   optimization: {
     minimizer: [
