@@ -42,6 +42,7 @@
               nodejs
               nodePackages.pnpm
               yarn
+              webpack-cli
             ];
           };
         }
