@@ -44,7 +44,7 @@ export async function renderTokenHUD(hud, html, token, searchText = '', fp_files
   <div class="control-icon" data-action="token-variants-side-selector">
     <img
       id="token-variants-side-button"
-      src="modules/token-variants/img/token-images.svg"
+      src="modules/token-variants/token-variants/img/token-images.svg"
       width="36"
       height="36"
       title="Left-click: Image Menu&#013;Right-click: Search & Additional settings"
@@ -395,7 +395,7 @@ async function renderSideSelect(token, searchText = '', fp_files = null) {
   const imageOpacity = hudSettings.imageOpacity / 100;
 
   const sideSelect = $(
-    await renderTemplate('modules/token-variants/templates/sideSelect.html', {
+    await renderTemplate('modules/token-variants/token-variants/templates/sideSelect.html', {
       imagesParsed,
       imageDisplay,
       imageOpacity,

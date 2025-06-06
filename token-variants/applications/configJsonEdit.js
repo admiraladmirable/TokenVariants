@@ -9,7 +9,7 @@ export default class EditJsonConfig extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: 'token-variants-config-json-edit',
       classes: ['sheet'],
-      template: 'modules/token-variants/templates/configJsonEdit.html',
+      template: 'modules/token-variants/token-variants/templates/configJsonEdit.html',
       resizable: true,
       minimizable: false,
       title: 'Edit Token Configuration',

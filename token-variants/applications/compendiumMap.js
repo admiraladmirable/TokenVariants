@@ -162,7 +162,7 @@ export default class CompendiumMapConfig extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: 'token-variants-compendium-map-config',
       classes: ['sheet'],
-      template: 'modules/token-variants/templates/compendiumMap.html',
+      template: 'modules/token-variants/token-variants/templates/compendiumMap.html',
       resizable: false,
       minimizable: false,
       title: game.i18n.localize('token-variants.settings.compendium-mapper.Name'),

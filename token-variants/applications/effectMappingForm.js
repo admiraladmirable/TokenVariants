@@ -35,7 +35,7 @@ export default class EffectMappingForm extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: 'token-variants-active-effect-config',
       classes: ['sheet'],
-      template: 'modules/token-variants/templates/effectMappingForm.html',
+      template: 'modules/token-variants/token-variants/templates/effectMappingForm.html',
       resizable: true,
       minimizable: false,
       closeOnSubmit: false,

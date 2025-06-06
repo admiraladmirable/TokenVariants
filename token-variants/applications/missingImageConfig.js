@@ -11,7 +11,7 @@ export default class MissingImageConfig extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: 'token-variants-missing-images',
       classes: ['sheet'],
-      template: 'modules/token-variants/templates/missingImageConfig.html',
+      template: 'modules/token-variants/token-variants/templates/missingImageConfig.html',
       resizable: true,
       minimizable: false,
       title: 'Define Missing Images',

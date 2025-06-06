@@ -13,7 +13,7 @@ export default class FlagsConfig extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: 'token-variants-token-flags',
       classes: ['sheet'],
-      template: 'modules/token-variants/templates/flagsConfig.html',
+      template: 'modules/token-variants/token-variants/templates/flagsConfig.html',
       resizable: true,
       minimizable: false,
       title: 'Flags',

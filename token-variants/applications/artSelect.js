@@ -121,7 +121,7 @@ export class ArtSelect extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: 'token-variants-art-select',
       classes: ['sheet'],
-      template: 'modules/token-variants/templates/artSelect.html',
+      template: 'modules/token-variants/token-variants/templates/artSelect.html',
       resizable: true,
       minimizable: false,
     });

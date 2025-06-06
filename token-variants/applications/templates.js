@@ -13,7 +13,7 @@ export class Templates extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: 'token-variants-templates',
       classes: ['sheet'],
-      template: 'modules/token-variants/templates/templates.html',
+      template: 'modules/token-variants/token-variants/templates/templates.html',
       resizable: false,
       minimizable: false,
       title: 'Mapping Templates',
@@ -192,7 +192,7 @@ class TemplateSubmissionForm extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: 'token-variants-template-submission',
       classes: ['sheet'],
-      template: 'modules/token-variants/templates/templateSubmission.html',
+      template: 'modules/token-variants/token-variants/templates/templateSubmission.html',
       resizable: true,
       minimizable: false,
       closeOnSubmit: false,

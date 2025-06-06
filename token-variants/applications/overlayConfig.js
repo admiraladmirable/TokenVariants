@@ -29,7 +29,7 @@ export class OverlayConfig extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: 'token-variants-overlay-config',
       classes: ['sheet'],
-      template: 'modules/token-variants/templates/overlayConfig.html',
+      template: 'modules/token-variants/token-variants/templates/overlayConfig.html',
       resizable: false,
       minimizable: false,
       title: 'Overlay Settings',
@@ -561,10 +561,10 @@ export class OverlayConfig extends FormApplication {
 
     // Cache Partials
     for (const shapeName of Object.keys(OVERLAY_SHAPES)) {
-      await getTemplate(`modules/token-variants/templates/partials/shape${shapeName}.html`);
+      await getTemplate(`modules/token-variants/token-variants/templates/partials/shape${shapeName}.html`);
     }
-    await getTemplate('modules/token-variants/templates/partials/repeating.html');
-    await getTemplate('modules/token-variants/templates/partials/interpolateColor.html');
+    await getTemplate('modules/token-variants/token-variants/templates/partials/repeating.html');
+    await getTemplate('modules/token-variants/token-variants/templates/partials/interpolateColor.html');
 
     data.allShapes = Object.keys(OVERLAY_SHAPES);
     data.textAlignmentOptions = [

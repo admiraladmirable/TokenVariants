@@ -9,7 +9,7 @@ export default class EditScriptConfig extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: 'token-variants-config-script-edit',
       classes: ['sheet'],
-      template: 'modules/token-variants/templates/configScriptEdit.html',
+      template: 'modules/token-variants/token-variants/templates/configScriptEdit.html',
       resizable: true,
       minimizable: false,
       title: 'Scripts',

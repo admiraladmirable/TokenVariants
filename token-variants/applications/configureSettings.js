@@ -44,7 +44,7 @@ export default class ConfigureSettings extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: 'token-variants-configure-settings',
       classes: ['sheet'],
-      template: 'modules/token-variants/templates/configureSettings.html',
+      template: 'modules/token-variants/token-variants/templates/configureSettings.html',
       resizable: false,
       minimizable: false,
       title: 'Configure Settings',
@@ -398,7 +398,7 @@ export default class ConfigureSettings extends FormApplication {
             results: resultsArray,
             replacement: true,
             displayRoll: true,
-            img: 'modules/token-variants/img/token-images.svg',
+            img: 'modules/token-variants/token-variants/img/token-images.svg',
           });
 
           pathInput.val(data.title);
@@ -454,7 +454,7 @@ export default class ConfigureSettings extends FormApplication {
             results: resultsArray,
             replacement: true,
             displayRoll: true,
-            img: 'modules/token-variants/img/token-images.svg',
+            img: 'modules/token-variants/token-variants/img/token-images.svg',
           });
 
           pathInput.val(data.title);

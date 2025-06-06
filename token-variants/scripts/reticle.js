@@ -148,7 +148,7 @@ export class Reticle {
 
     const interaction = canvas.app.renderer.events;
     if (!interaction.cursorStyles['reticle']) {
-      interaction.cursorStyles['reticle'] = "url('modules/token-variants/img/reticle.webp'), auto";
+      interaction.cursorStyles['reticle'] = "url('modules/token-variants/token-variants/img/reticle.webp'), auto";
     }
 
     this.tvaOverlay = tvaOverlay;
@@ -263,10 +263,10 @@ function displayControlDialog() {
         .anchorlbl {margin: auto; display: table; }
       </style>
       <div class="images">
-        <a data-id="token"><img src="modules/token-variants/img/token_mode.png"></img></a>
-        <a data-id="tooltip"><img src="modules/token-variants/img/tooltip_mode.png"></img></a>
-        <a data-id="hud"><img src="modules/token-variants/img/hud_mode.png"></img></a>
-        <a data-id="static"><img src="modules/token-variants/img/static_mode.png"></img></a>
+        <a data-id="token"><img src="modules/token-variants/token-variants/img/token_mode.png"></img></a>
+        <a data-id="tooltip"><img src="modules/token-variants/token-variants/img/tooltip_mode.png"></img></a>
+        <a data-id="hud"><img src="modules/token-variants/token-variants/img/hud_mode.png"></img></a>
+        <a data-id="static"><img src="modules/token-variants/token-variants/img/static_mode.png"></img></a>
       </div>
      <br>
       <label class="anchorlbl">Anchor</label>

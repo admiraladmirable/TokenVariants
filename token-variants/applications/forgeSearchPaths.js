@@ -10,7 +10,7 @@ export class ForgeSearchPaths extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: 'token-variants-search-paths',
       classes: ['sheet'],
-      template: 'modules/token-variants/templates/forgeSearchPaths.html',
+      template: 'modules/token-variants/token-variants/templates/forgeSearchPaths.html',
       resizable: true,
       minimizable: false,
       closeOnSubmit: false,

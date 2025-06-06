@@ -278,7 +278,7 @@
             {{/each}}
             <hr>
 
-            {{~>modules/token-variants/templates/partials/repeating.html repeating=repeating root="" repeat=repeat padding="true"}}
+            {{~>modules/token-variants/token-variants/templates/partials/repeating.html repeating=repeating root="" repeat=repeat padding="true"}}
         </div>
 
         <div class="tab active" data-group="main" data-tab="appearance">
@@ -302,7 +302,7 @@
                     </div>
                 </div>
 
-                {{~>modules/token-variants/templates/partials/interpolateColor.html root="" interpolateColor=interpolateColor label="Tint Color"}}
+                {{~>modules/token-variants/token-variants/templates/partials/interpolateColor.html root="" interpolateColor=interpolateColor label="Tint Color"}}
             </fieldset>
 
             <fieldset>
@@ -404,7 +404,7 @@
 
             </fieldset>
 
-            <img src="modules/token-variants/img/anchor_diagram.webp" width="200" height="200" style="margin: auto;display: block;border: none;"/>
+            <img src="modules/token-variants/token-variants/img/anchor_diagram.webp" width="200" height="200" style="margin: auto;display: block;border: none;"/>
         </div>
 
         <div class="tab active" data-group="main" data-tab="filter">
@@ -563,7 +563,7 @@
                 <p class="notes">Token attributes can be inserted as so: <b>&#123;&#123;name&#125;&#125;</b></p>
             </div>
 
-            {{~>modules/token-variants/templates/partials/repeating.html repeating=text.repeating root="text." repeat=text.repeat}}
+            {{~>modules/token-variants/token-variants/templates/partials/repeating.html repeating=text.repeating root="text." repeat=text.repeat}}
 
             <div class="form-group">
                 <label>{{localize "DRAWING.FontFamily"}}</label>
@@ -582,7 +582,7 @@
                 </div>
             </div>
 
-            {{~>modules/token-variants/templates/partials/interpolateColor.html root="text." interpolateColor=text.interpolateColor label="Fill Color"}}
+            {{~>modules/token-variants/token-variants/templates/partials/interpolateColor.html root="text." interpolateColor=text.interpolateColor label="Fill Color"}}
             
             <div class="form-group">
                 <label>Font Size</label>
@@ -723,15 +723,15 @@
             <hr><hr>
 
             {{#if (eq shape.shape.type "rectangle")}}
-                {{~>modules/token-variants/templates/partials/shapeRectangle.html shape}}
+                {{~>modules/token-variants/token-variants/templates/partials/shapeRectangle.html shape}}
             {{else if (eq shape.shape.type "ellipse")}}
-                {{~>modules/token-variants/templates/partials/shapeEllipse.html shape}}
+                {{~>modules/token-variants/token-variants/templates/partials/shapeEllipse.html shape}}
             {{else if (eq shape.shape.type "polygon")}}
-                {{~>modules/token-variants/templates/partials/shapePolygon.html shape}}
+                {{~>modules/token-variants/token-variants/templates/partials/shapePolygon.html shape}}
             {{else if (eq shape.shape.type "torus")}}
-                {{~>modules/token-variants/templates/partials/shapeTorus.html shape}}
+                {{~>modules/token-variants/token-variants/templates/partials/shapeTorus.html shape}}
             {{else if (eq shape.shape.type "cutCircle")}}
-                {{~>modules/token-variants/templates/partials/shapeCutCircle.html shape}}
+                {{~>modules/token-variants/token-variants/templates/partials/shapeCutCircle.html shape}}
             {{/if}}
 
             <fieldset>
@@ -774,11 +774,11 @@
                     </div>
                 </div>
 
-                {{~>modules/token-variants/templates/partials/interpolateColor.html root=(concat "shapes." @index ".fill.") interpolateColor=shape.fill.interpolateColor label="Color"}}
+                {{~>modules/token-variants/token-variants/templates/partials/interpolateColor.html root=(concat "shapes." @index ".fill.") interpolateColor=shape.fill.interpolateColor label="Color"}}
 
             </fieldset>
 
-            {{~>modules/token-variants/templates/partials/repeating.html repeating=shape.repeating root=(concat "shapes." @index ".") repeat=shape.repeat padding="true"}}
+            {{~>modules/token-variants/token-variants/templates/partials/repeating.html repeating=shape.repeating root=(concat "shapes." @index ".") repeat=shape.repeat padding="true"}}
 
             <hr><hr>
             {{/each}}

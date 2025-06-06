@@ -5,7 +5,7 @@ export default class ImportExport extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: 'token-variants-import-export',
       classes: ['sheet'],
-      template: 'modules/token-variants/templates/importExport.html',
+      template: 'modules/token-variants/token-variants/templates/importExport.html',
       resizable: false,
       minimizable: false,
       title: 'Import/Export',

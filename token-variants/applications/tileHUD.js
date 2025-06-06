@@ -14,7 +14,7 @@ export async function renderTileHUD(hud, html, tileData, searchText = '', fp_fil
   <div class="control-icon" data-action="token-variants-side-selector">
     <img
       id="token-variants-side-button"
-      src="modules/token-variants/img/token-images.svg"
+      src="modules/token-variants/token-variants/img/token-images.svg"
       width="36"
       height="36"
       title="${game.i18n.localize('token-variants.windows.art-select.select-variant')}"
@@ -262,7 +262,7 @@ async function renderSideSelect(tile, searchText = null, fp_files = null) {
   const imageOpacity = hudSettings.imageOpacity / 100;
 
   const sideSelect = $(
-    await renderTemplate('modules/token-variants/templates/sideSelect.html', {
+    await renderTemplate('modules/token-variants/token-variants/templates/sideSelect.html', {
       imagesParsed,
       imageDisplay,
       imageOpacity,
