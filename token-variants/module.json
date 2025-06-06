@@ -18,9 +18,9 @@
   ],
   "bugs": "https://github.com/admiraladmirable/TokenVariants/issues",
   "socket": true,
-  "esmodules": ["bundle.js"],
+  "esmodules": ["token-variants/bundle.js"],
   "scripts": [],
-  "styles": ["styles/tva-styles.css"],
+  "styles": ["token-variants/styles/tva-styles.css"],
   "languages": [
     {
       "lang": "en",
