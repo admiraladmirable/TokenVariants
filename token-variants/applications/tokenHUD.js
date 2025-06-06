@@ -52,8 +52,8 @@ export async function renderTokenHUD(hud, html, token, searchText = '', fp_files
   </div>
 `);
 
-  html.find('div.right').last().append(button);
-  html.find('div.right').click(_deactivateTokenVariantsSideSelector);
+  html.find('col.right').last().append(button);
+  html.find('col.right').click(_deactivateTokenVariantsSideSelector);
 
   button.click((event) => _onButtonClick(event, token));
   if (FULL_ACCESS) {
