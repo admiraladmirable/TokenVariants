@@ -35,12 +35,15 @@ export async function renderTokenHUD(hud, html, token, searchText = '', fp_files
 
   const tokenActor = game.actors.get(token.actorId);
 
-  // Disable button if Token HUD Wildcard is enabled and appropriate setting is set
+  // Disable button if Token HUD Wildcard is e enabled and appropriate setting is set
   if (TVA_CONFIG.worldHud.disableIfTHWEnabled && game.modules.get('token-hud-wildcard')?.active) {
     if (tokenActor && tokenActor.prototypeToken.randomImg) return;
   }
 
-  const button = $(`
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.classList.add('control-icon');
+  button.innerHTML = $(`
   <div class="control-icon" data-action="token-variants-side-selector">
     <img
       id="token-variants-side-button"
