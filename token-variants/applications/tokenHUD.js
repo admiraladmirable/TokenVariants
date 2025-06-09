@@ -44,7 +44,7 @@ export async function renderTokenHUD(hud, html, token, searchText = '', fp_files
   button.type = 'button';
   button.classList.add('control-icon');
   button.dataset.action = 'token-variants-side-selector';
-  button.innerHTML = $(`
+  button.innerHTML = `
   <div class="control-icon" data-action="token-variants-side-selector">
     <img
       id="token-variants-side-button"
@@ -54,10 +54,11 @@ export async function renderTokenHUD(hud, html, token, searchText = '', fp_files
       title="Left-click: Image Menu&#013;Right-click: Search & Additional settings"
     />
   </div>
-`);
+  `;
 
-  html.querySelector('.col.right').appendChild(button);
-  html.querySelector('.col.right').click(_deactivateTokenVariantsSideSelector);
+  const colRight = html.querySelector('.col.right');
+  colRight.appendChild(button);
+  colRight.click(_deactivateTokenVariantsSideSelector);
 
   button.click((event) => _onButtonClick(event, token));
   if (FULL_ACCESS) {
