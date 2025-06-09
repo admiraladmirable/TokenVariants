@@ -43,6 +43,7 @@ export async function renderTokenHUD(hud, html, token, searchText = '', fp_files
   const button = document.createElement('button');
   button.type = 'button';
   button.classList.add('control-icon');
+  button.dataset.action = 'token-variants-side-selector';
   button.innerHTML = $(`
   <div class="control-icon" data-action="token-variants-side-selector">
     <img
