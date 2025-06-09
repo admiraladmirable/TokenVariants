@@ -56,13 +56,14 @@ export async function renderTokenHUD(hud, html, token, searchText = '', fp_files
   </div>
   `;
 
+
   const colRight = html.querySelector('.col.right');
   colRight.appendChild(button);
   colRight.click(_deactivateTokenVariantsSideSelector);
 
   button.click((event) => _onButtonClick(event, token));
   if (FULL_ACCESS) {
-    button.contextmenu((event) => _onButtonRightClick(event, hud, html, token));
+    button.addEventListener("contextmenu", (event) => _onButtonRightClick(event, hud, html, token));
   }
 }
 
