@@ -684,57 +684,69 @@ function activateStatusEffectListeners(token) {
     const iconEffects = document.querySelector(
       '.control-icon[data-action="effects"]',
     );
-    // if (iconEffects) {
-    //   const imgFirst =
-    // }
-    '.control-icon[data-action="effects"]'.find("img:first").click((event) => {
-      event.preventDefault();
-      if (keyPressed("config")) {
-        event.stopPropagation();
-        new EffectMappingForm(token).render(true);
-      }
-    });
-
-    '.control-icon[data-action="visibility"]'.find("img").click((event) => {
-      event.preventDefault();
-      if (keyPressed("config")) {
-        event.stopPropagation();
-        new EffectMappingForm(token, {
-          createMapping: {
-            label: "In Combat",
-            expression: "token-variants-visibility",
-          },
-        }).render(true);
-      }
-    });
-
-    '.control-icon[data-action="combat"]'.find("img").click((event) => {
-      event.preventDefault();
-      if (keyPressed("config")) {
-        event.stopPropagation();
-        new EffectMappingForm(token, {
-          createMapping: {
-            label: "In Combat",
-            expression: "token-variants-combat",
-          },
-        }).render(true);
-      }
-    });
-
-    ".status-effects".find("img").click((event) => {
-      event.preventDefault();
-      if (keyPressed("config")) {
-        event.stopPropagation();
-
-        let effectName = event.target.data("tooltip");
-        if (game.system.id === "pf2e") {
-          effectName = event.target.closest("picture").attr("title");
+    if (iconEffects) {
+      iconEffects.find("img:first").click((event) => {
+        event.preventDefault();
+        if (keyPressed("config")) {
+          event.stopPropagation();
+          new EffectMappingForm(token).render(true);
         }
-        new EffectMappingForm(token, {
-          createMapping: { label: effectName, expression: effectName },
-        }).render(true);
-      }
-    });
+      });
+    }
+
+    const iconVisibility = document.querySelector(
+      '.control-icon[data-action="visibility"]',
+    );
+    if (iconVisibility) {
+      iconVisibility.find("img").click((event) => {
+        event.preventDefault();
+        if (keyPressed("config")) {
+          event.stopPropagation();
+          new EffectMappingForm(token, {
+            createMapping: {
+              label: "In Combat",
+              expression: "token-variants-visibility",
+            },
+          }).render(true);
+        }
+      });
+    }
+
+    const iconCombat = document.querySelector(
+      '.control-icon[data-action="combat"]',
+    );
+    if (iconCombat) {
+      iconCombat.find("img").click((event) => {
+        event.preventDefault();
+        if (keyPressed("config")) {
+          event.stopPropagation();
+          new EffectMappingForm(token, {
+            createMapping: {
+              label: "In Combat",
+              expression: "token-variants-combat",
+            },
+          }).render(true);
+        }
+      });
+    }
+
+    const statusEffects = document.querySelector(".status-effects");
+    if (statusEffects) {
+      statusEffects.find("img").click((event) => {
+        event.preventDefault();
+        if (keyPressed("config")) {
+          event.stopPropagation();
+
+          let effectName = event.target.data("tooltip");
+          if (game.system.id === "pf2e") {
+            effectName = event.target.closest("picture").attr("title");
+          }
+          new EffectMappingForm(token, {
+            createMapping: { label: effectName, expression: effectName },
+          }).render(true);
+        }
+      });
+    }
   }
 }
 
