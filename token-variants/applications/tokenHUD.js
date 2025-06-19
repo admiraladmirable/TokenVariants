@@ -7,18 +7,25 @@ import {
   updateActorImage,
   updateTokenImage,
   decodeURISafely,
-} from '../scripts/utils.js';
-import TokenCustomConfig from './tokenCustomConfig.js';
-import EffectMappingForm from './effectMappingForm.js';
-import { TVA_CONFIG } from '../scripts/settings.js';
-import UserList from './userList.js';
-import FlagsConfig from './flagsConfig.js';
-import RandomizerConfig from './randomizerConfig.js';
-import { doImageSearch, findImagesFuzzy } from '../scripts/search.js';
+} from "../scripts/utils.js";
+import TokenCustomConfig from "./tokenCustomConfig.js";
+import EffectMappingForm from "./effectMappingForm.js";
+import { TVA_CONFIG } from "../scripts/settings.js";
+import UserList from "./userList.js";
+import FlagsConfig from "./flagsConfig.js";
+import RandomizerConfig from "./randomizerConfig.js";
+import { doImageSearch, findImagesFuzzy } from "../scripts/search.js";
+import { createContextMenu } from "../scripts/helpers/domPresets.js";
 
 export const TOKEN_HUD_VARIANTS = { variants: null, actor: null };
 
-export async function renderTokenHUD(hud, html, token, searchText = '', fp_files = null) {
+export async function renderTokenHUD(
+  hud,
+  html,
+  token,
+  searchText = "",
+  fp_files = null,
+) {
   activateStatusEffectListeners(token);
 
   const hudSettings = TVA_CONFIG.hud;
@@ -29,101 +36,114 @@ export async function renderTokenHUD(hud, html, token, searchText = '', fp_files
   if (
     !hudSettings.enableSideMenu ||
     (!PARTIAL_ACCESS && !FULL_ACCESS) ||
-    token.flags['token-variants']?.disableHUDButton
+    token.flags["token-variants"]?.disableHUDButton
   )
     return;
 
   const tokenActor = game.actors.get(token.actorId);
 
-  // Disable button if Token HUD Wildcard is enabled and appropriate setting is set
-  if (TVA_CONFIG.worldHud.disableIfTHWEnabled && game.modules.get('token-hud-wildcard')?.active) {
+  // Disable button if Token HUD Wildcard is e enabled and appropriate setting is set
+  if (
+    TVA_CONFIG.worldHud.disableIfTHWEnabled &&
+    game.modules.get("token-hud-wildcard")?.active
+  ) {
     if (tokenActor && tokenActor.prototypeToken.randomImg) return;
   }
 
-  const button = $(`
-  <div class="control-icon" data-action="token-variants-side-selector">
-    <img
-      id="token-variants-side-button"
-      src="modules/token-variants/img/token-images.svg"
-      width="36"
-      height="36"
-      title="Left-click: Image Menu&#013;Right-click: Search & Additional settings"
-    />
-  </div>
-`);
+  const button = new ElementBuilder("button")
+    .type("button")
+    .className("control-icon")
+    .dataset("action", "token-variants-side-selector")
+    .appendChild(
+      new ElementBuilder("div")
+        .className("control-icon")
+        .dataset("action", "token-variants-side-selector")
+        .appendChild(
+          new ElementBuilder("img")
+            .attr("id", "token-variants-side-button")
+            .attr(
+              "src",
+              "modules/token-variants/token-variants/img/token-images.svg",
+            )
+            .attr("width", "36")
+            .attr("height", "36")
+            .attr(
+              "title",
+              "Left-click: Image Menu&#013;Right-click: Search & Additional settings",
+            )
+            .build(),
+        )
+        .build(),
+    )
+    .on("click", (event) => _onButtonClick(event, token))
+    .when(FULL_ACCESS, (builder) =>
+      builder.on("contextmenu", (event) =>
+        _onButtonRightClick(event, hud, html, token),
+      ),
+    )
+    .build();
 
-  html.find('div.right').last().append(button);
-  html.find('div.right').click(_deactivateTokenVariantsSideSelector);
-
-  button.click((event) => _onButtonClick(event, token));
-  if (FULL_ACCESS) {
-    button.contextmenu((event) => _onButtonRightClick(event, hud, html, token));
-  }
+  const colRight = html.querySelector(".col.right");
+  colRight.appendChild(button);
+  colRight.click(_deactivateTokenVariantsSideSelector);
 }
 
 async function _onButtonClick(event, token) {
-  const button = $(event.target).closest('.control-icon');
+  const button = event.target.closest(".control-icon");
 
   // De-activate 'Status Effects'
-  button.closest('div.right').find('div.control-icon.effects').removeClass('active');
-  button.closest('div.right').find('.status-effects').removeClass('active');
+  button
+    .closest("div.right")
+    .find("div.control-icon.effects")
+    .removeClass("active");
+  button.closest("div.right").find(".status-effects").removeClass("active");
 
   // Remove contextmenu
-  button.find('.contextmenu').remove();
+  button.querySelector(".contextmenu").remove();
 
   // Toggle variants side menu
-  button.toggleClass('active');
-  let variantsWrap = button.find('.token-variants-wrap');
-  if (button.hasClass('active')) {
+  button.toggleClass("active");
+  let variantsWrap = button.querySelector(".token-variants-wrap");
+  if (button.hasClass("active")) {
     if (!variantsWrap.length) {
       variantsWrap = await renderSideSelect(token);
-      if (variantsWrap) button.find('img').after(variantsWrap);
+      if (variantsWrap) button.querySelector("img").after(variantsWrap);
       else return;
     }
-    variantsWrap.addClass('active');
+    variantsWrap.addClass("active");
   } else {
-    variantsWrap.removeClass('active');
+    variantsWrap.removeClass("active");
   }
 }
 
 function _onButtonRightClick(event, hud, html, token) {
   // Display side menu if button is not active yet
-  const button = $(event.target).closest('.control-icon');
-  if (!button.hasClass('active')) {
+  const button = event.target.closest(".control-icon");
+  if (!button.hasClass("active")) {
     // button.trigger('click');
-    button.addClass('active');
+    button.addClass("active");
   }
 
-  if (button.find('.contextmenu').length) {
+  if (button.querySelector(".contextmenu").length) {
     // Contextmenu already displayed. Remove and activate images
-    button.find('.contextmenu').remove();
-    button.removeClass('active').trigger('click');
-    //button.find('.token-variants-wrap.images').addClass('active');
+    button.querySelector(".contextmenu").remove();
+    button.removeClass("active").trigger("click");
+    //button.querySelector('.token-variants-wrap.images').addClass('active');
   } else {
     // Contextmenu is not displayed. Hide images, create it and add it
-    button.find('.token-variants-wrap.images').removeClass('active');
-    const contextMenu = $(`
-    <div class="token-variants-wrap contextmenu active">
-      <div class="token-variants-context-menu active">
-        <input class="token-variants-side-search" type="text" />
-        <button class="flags" type="button"><i class="fab fa-font-awesome-flag"></i><label>Flags</label></button>
-        <button class="file-picker" type="button"><i class="fas fa-file-import fa-fw"></i><label>Browse Folders</label></button>
-        <button class="effectConfig" type="button"><i class="fas fa-sun"></i><label>Mappings</label></button>
-        <button class="randomizerConfig" type="button"><i class="fas fa-dice"></i><label>Randomizer</label></button>
-      </div>
-    </div>
-      `);
+    button.querySelector(".token-variants-wrap.images").removeClass("active");
+    const contextMenu = createContextMenu();
     button.append(contextMenu);
 
     // Register contextmenu listeners
     contextMenu
-      .find('.token-variants-side-search')
-      .on('keyup', (event) => _onImageSearchKeyUp(event, token))
-      .on('click', (event) => {
+      .find(".token-variants-side-search")
+      .on("keyup", (event) => _onImageSearchKeyUp(event, token))
+      .on("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
       });
-    contextMenu.find('.flags').click((event) => {
+    contextMenu.find(".flags").click((event) => {
       const tkn = canvas.tokens.get(token._id);
       if (tkn) {
         event.preventDefault();
@@ -131,55 +151,61 @@ function _onButtonRightClick(event, hud, html, token) {
         new FlagsConfig(tkn).render(true);
       }
     });
-    contextMenu.find('.file-picker').click(async (event) => {
+    contextMenu.find(".file-picker").click(async (event) => {
       event.preventDefault();
       event.stopPropagation();
       new FilePicker({
-        type: 'imagevideo',
+        type: "imagevideo",
         callback: async (path, fp) => {
-          const content = await FilePicker.browse(fp.activeSource, fp.result.target);
+          const content = await FilePicker.browse(
+            fp.activeSource,
+            fp.result.target,
+          );
           let files = content.files.filter((f) => isImage(f) || isVideo(f));
           if (files.length) {
-            button.find('.token-variants-wrap').remove();
-            const sideSelect = await renderSideSelect(token, '', files);
+            button.querySelector(".token-variants-wrap").remove();
+            const sideSelect = await renderSideSelect(token, "", files);
             if (sideSelect) {
-              sideSelect.addClass('active');
+              sideSelect.addClass("active");
               button.append(sideSelect);
             }
           }
         },
       }).render(true);
     });
-    contextMenu.find('.effectConfig').click((event) => {
+    contextMenu.find(".effectConfig").click((event) => {
       new EffectMappingForm(token).render(true);
     });
-    contextMenu.find('.randomizerConfig').click((event) => {
+    contextMenu.find(".randomizerConfig").click((event) => {
       new RandomizerConfig(token).render(true);
     });
   }
 }
 
 function _deactivateTokenVariantsSideSelector(event) {
-  const controlIcon = $(event.target).closest('.control-icon');
-  const dataAction = controlIcon.attr('data-action');
+  const controlIcon = event.target.closest(".control-icon");
+  const dataAction = controlIcon.attr("data-action");
 
   switch (dataAction) {
-    case 'effects':
+    case "effects":
       break; // Effects button
-    case 'thwildcard-selector':
+    case "thwildcard-selector":
       break; // Token HUD Wildcard module button
     default:
       return;
   }
 
-  $(event.target)
-    .closest('div.right')
+  event.target
+    .closest("div.right")
     .find('.control-icon[data-action="token-variants-side-selector"]')
-    .removeClass('active');
-  $(event.target).closest('div.right').find('.token-variants-wrap').removeClass('active');
+    .removeClass("active");
+  event.target
+    .closest("div.right")
+    .find(".token-variants-wrap")
+    .removeClass("active");
 }
 
-async function renderSideSelect(token, searchText = '', fp_files = null) {
+async function renderSideSelect(token, searchText = "", fp_files = null) {
   const hudSettings = TVA_CONFIG.hud;
   const worldHudSettings = TVA_CONFIG.worldHud;
   const FULL_ACCESS = TVA_CONFIG.permissions.hudFullAccess[game.user.role];
@@ -192,7 +218,9 @@ async function renderSideSelect(token, searchText = '', fp_files = null) {
   let imageDuplicates = new Set();
   const pushImage = (img) => {
     if (imageDuplicates.has(img.path)) {
-      if (!images.find((obj) => obj.path === img.path && obj.name === img.name)) {
+      if (
+        !images.find((obj) => obj.path === img.path && obj.name === img.name)
+      ) {
         images.push(img);
       }
     } else {
@@ -209,18 +237,25 @@ async function renderSideSelect(token, searchText = '', fp_files = null) {
       if (token.texture?.src && token.texture?.src !== CONST.DEFAULT_TOKEN) {
         pushImage({
           path: decodeURISafely(token.texture.src),
-          name: token.flags?.['token-variants']?.name ?? getFileName(token.texture.src),
+          name:
+            token.flags?.["token-variants"]?.name ??
+            getFileName(token.texture.src),
         });
       }
 
       if (tokenActor) {
         // Insert default token image
         const defaultImg =
-          tokenActor.prototypeToken?.flags['token-variants']?.['randomImgDefault'] ||
-          tokenActor.prototypeToken?.flags['token-hud-wildcard']?.['default'] ||
-          '';
+          tokenActor.prototypeToken?.flags["token-variants"]?.[
+            "randomImgDefault"
+          ] ||
+          tokenActor.prototypeToken?.flags["token-hud-wildcard"]?.["default"] ||
+          "";
         if (defaultImg) {
-          pushImage({ path: decodeURISafely(defaultImg), name: getFileName(defaultImg) });
+          pushImage({
+            path: decodeURISafely(defaultImg),
+            name: getFileName(defaultImg),
+          });
         }
 
         if (FULL_ACCESS || PARTIAL_ACCESS) {
@@ -233,19 +268,22 @@ async function renderSideSelect(token, searchText = '', fp_files = null) {
 
         // Parse directory flag and include the images
         if (FULL_ACCESS || PARTIAL_ACCESS) {
-          const directoryFlag = tokenActor.getFlag('token-variants', 'directory');
+          const directoryFlag = tokenActor.getFlag(
+            "token-variants",
+            "directory",
+          );
           if (directoryFlag) {
             let dirFlagImages;
             try {
               let path = directoryFlag.path;
               let source = directoryFlag.source;
-              let bucket = '';
-              if (source.startsWith('s3:')) {
+              let bucket = "";
+              if (source.startsWith("s3:")) {
                 bucket = source.substring(3, source.length);
-                source = 's3';
+                source = "s3";
               }
               const content = await FilePicker.browse(source, path, {
-                type: 'imagevideo',
+                type: "imagevideo",
                 bucket,
               });
               dirFlagImages = content.files;
@@ -253,7 +291,8 @@ async function renderSideSelect(token, searchText = '', fp_files = null) {
               dirFlagImages = [];
             }
             dirFlagImages = dirFlagImages.forEach((f) => {
-              if (isImage(f) || isVideo(f)) pushImage({ path: decodeURISafely(f), name: getFileName(f) });
+              if (isImage(f) || isVideo(f))
+                pushImage({ path: decodeURISafely(f), name: getFileName(f) });
             });
           }
         }
@@ -267,32 +306,43 @@ async function renderSideSelect(token, searchText = '', fp_files = null) {
           const protoImg = tokenActor.prototypeToken.texture.src;
           if (tokenActor.prototypeToken.randomImg) {
             (await tokenActor.getTokenImages())
-              .filter((img) => !img.includes('*'))
+              .filter((img) => !img.includes("*"))
               .forEach((img) => {
-                pushImage({ path: decodeURISafely(img), name: getFileName(img) });
+                pushImage({
+                  path: decodeURISafely(img),
+                  name: getFileName(img),
+                });
               });
-          } else if (protoImg.includes('*') || protoImg.includes('{') || protoImg.includes('}')) {
+          } else if (
+            protoImg.includes("*") ||
+            protoImg.includes("{") ||
+            protoImg.includes("}")
+          ) {
             // Modified version of Actor.getTokenImages()
             const getTokenImages = async () => {
               if (tokenActor._tokenImages) return tokenActor._tokenImages;
 
-              let source = 'data';
+              let source = "data";
               let pattern = tokenActor.prototypeToken.texture.src;
               const browseOptions = { wildcard: true };
 
               // Support non-user sources
               if (/\.s3\./.test(pattern)) {
-                source = 's3';
+                source = "s3";
                 const { bucket, keyPrefix } = FilePicker.parseS3URL(pattern);
                 if (bucket) {
                   browseOptions.bucket = bucket;
                   pattern = keyPrefix;
                 }
-              } else if (pattern.startsWith('icons/')) source = 'public';
+              } else if (pattern.startsWith("icons/")) source = "public";
 
               // Retrieve wildcard content
               try {
-                const content = await FilePicker.browse(source, pattern, browseOptions);
+                const content = await FilePicker.browse(
+                  source,
+                  pattern,
+                  browseOptions,
+                );
                 tokenActor._tokenImages = content.files;
               } catch (err) {
                 tokenActor._tokenImages = [];
@@ -301,9 +351,14 @@ async function renderSideSelect(token, searchText = '', fp_files = null) {
             };
 
             (await getTokenImages())
-              .filter((img) => !img.includes('*') && (isImage(img) || isVideo(img)))
+              .filter(
+                (img) => !img.includes("*") && (isImage(img) || isVideo(img)),
+              )
               .forEach((variant) => {
-                pushImage({ path: decodeURISafely(variant), name: getFileName(variant) });
+                pushImage({
+                  path: decodeURISafely(variant),
+                  name: getFileName(variant),
+                });
               });
           }
         }
@@ -316,7 +371,10 @@ async function renderSideSelect(token, searchText = '', fp_files = null) {
       if (searchText) {
         search = searchText.length > 2 ? searchText : null;
       } else {
-        if (worldHudSettings.displayOnlySharedImages || tokenActor?.getFlag('token-variants', 'disableNameSearch')) {
+        if (
+          worldHudSettings.displayOnlySharedImages ||
+          tokenActor?.getFlag("token-variants", "disableNameSearch")
+        ) {
           // No search
         } else if (token.name.length > 2) {
           search = token.name;
@@ -344,9 +402,9 @@ async function renderSideSelect(token, searchText = '', fp_files = null) {
   }
 
   // Retrieving the possibly custom name attached as a flag to the token
-  let tokenImageName = '';
-  if (token.flags['token-variants'] && token.flags['token-variants']['name']) {
-    tokenImageName = token.flags['token-variants']['name'];
+  let tokenImageName = "";
+  if (token.flags["token-variants"] && token.flags["token-variants"]["name"]) {
+    tokenImageName = token.flags["token-variants"]["name"];
   } else {
     tokenImageName = getFileName(token.texture.src);
   }
@@ -354,37 +412,50 @@ async function renderSideSelect(token, searchText = '', fp_files = null) {
   let imagesParsed = [];
   const tokenConfigs = (TVA_CONFIG.tokenConfigs || []).flat();
   const tkn = canvas.tokens.get(token._id);
-  const userMappings = tkn.document.getFlag('token-variants', 'userMappings') || {};
+  const userMappings =
+    tkn.document.getFlag("token-variants", "userMappings") || {};
 
   for (const imageObj of images) {
     const img = isImage(imageObj.path);
     const vid = isVideo(imageObj.path);
 
     const hasConfig = Boolean(
-      tokenConfigs.find((config) => config.tvImgSrc === imageObj.path && config.tvImgName === imageObj.name)
+      tokenConfigs.find(
+        (config) =>
+          config.tvImgSrc === imageObj.path &&
+          config.tvImgName === imageObj.name,
+      ),
     );
     let shared = false;
     if (TVA_CONFIG.permissions.hudFullAccess[game.user.role]) {
       actorVariants.forEach((variant) => {
-        if (variant.imgSrc === imageObj.path && variant.names.includes(imageObj.name)) {
+        if (
+          variant.imgSrc === imageObj.path &&
+          variant.names.includes(imageObj.name)
+        ) {
           shared = true;
         }
       });
     }
 
-    const [title, style] = genTitleAndStyle(userMappings, imageObj.path, imageObj.name);
+    const [title, style] = genTitleAndStyle(
+      userMappings,
+      imageObj.path,
+      imageObj.name,
+    );
 
     imagesParsed.push({
       route: imageObj.path,
       name: imageObj.name,
-      used: imageObj.path === token.texture.src && imageObj.name === tokenImageName,
+      used:
+        imageObj.path === token.texture.src && imageObj.name === tokenImageName,
       img,
       vid,
       unknownType: !img && !vid,
       shared: shared,
       hasConfig: hasConfig,
       title: title,
-      style: game.user.isGM && style ? 'box-shadow: ' + style + ';' : null,
+      style: game.user.isGM && style ? "box-shadow: " + style + ";" : null,
     });
   }
 
@@ -395,34 +466,41 @@ async function renderSideSelect(token, searchText = '', fp_files = null) {
   const imageOpacity = hudSettings.imageOpacity / 100;
 
   const sideSelect = $(
-    await renderTemplate('modules/token-variants/templates/sideSelect.html', {
-      imagesParsed,
-      imageDisplay,
-      imageOpacity,
-      tokenHud: true,
-    })
+    await renderTemplate(
+      "modules/token-variants/token-variants/templates/sideSelect.html",
+      {
+        imagesParsed,
+        imageDisplay,
+        imageOpacity,
+        tokenHud: true,
+      },
+    ),
   );
 
   // Activate listeners
-  sideSelect.find('video').hover(
+  sideSelect.find("video").hover(
     function () {
       if (TVA_CONFIG.playVideoOnHover) {
         this.play();
-        $(this).siblings('.fa-play').hide();
+        this.siblings(".fa-play").hide();
       }
     },
     function () {
       if (TVA_CONFIG.pauseVideoOnHoverOut) {
         this.pause();
         this.currentTime = 0;
-        $(this).siblings('.fa-play').show();
+        this.siblings(".fa-play").show();
       }
-    }
+    },
   );
-  sideSelect.find('.token-variants-button-select').click((event) => _onImageClick(event, token._id));
+  sideSelect
+    .find(".token-variants-button-select")
+    .click((event) => _onImageClick(event, token._id));
 
   if (FULL_ACCESS) {
-    sideSelect.find('.token-variants-button-select').on('contextmenu', (event) => _onImageRightClick(event, token._id));
+    sideSelect
+      .find(".token-variants-button-select")
+      .on("contextmenu", (event) => _onImageRightClick(event, token._id));
   }
 
   return sideSelect;
@@ -437,25 +515,26 @@ async function _onImageClick(event, tokenId) {
 
   const worldHudSettings = TVA_CONFIG.worldHud;
 
-  const imgButton = $(event.target).closest('.token-variants-button-select');
-  const imgSrc = imgButton.attr('data-name');
-  const name = imgButton.attr('data-filename');
+  const imgButton = event.target.closest(".token-variants-button-select");
+  const imgSrc = imgButton.attr("data-name");
+  const name = imgButton.attr("data-filename");
 
   if (!imgSrc || !name) return;
 
-  if (keyPressed('config') && game.user.isGM) {
+  if (keyPressed("config") && game.user.isGM) {
     const toggleCog = (saved) => {
-      const cog = imgButton.find('.fa-cog');
+      const cog = imgbutton.querySelector(".fa-cog");
       if (saved) {
-        cog.addClass('active');
+        cog.addClass("active");
       } else {
-        cog.removeClass('active');
+        cog.removeClass("active");
       }
     };
     new TokenCustomConfig(token, {}, imgSrc, name, toggleCog).render(true);
   } else if (token.document.texture.src === imgSrc) {
-    let tokenImageName = token.document.getFlag('token-variants', 'name');
-    if (!tokenImageName) tokenImageName = getFileName(token.document.texture.src);
+    let tokenImageName = token.document.getFlag("token-variants", "name");
+    if (!tokenImageName)
+      tokenImageName = getFileName(token.document.texture.src);
     if (tokenImageName !== name) {
       await updateTokenImage(imgSrc, {
         token: token,
@@ -492,22 +571,23 @@ async function _onImageRightClick(event, tokenId) {
   let token = canvas.tokens.controlled.find((t) => t.document.id === tokenId);
   if (!token) return;
 
-  const imgButton = $(event.target).closest('.token-variants-button-select');
-  const imgSrc = imgButton.attr('data-name');
-  const name = imgButton.attr('data-filename');
+  const imgButton = event.target.closest(".token-variants-button-select");
+  const imgSrc = imgButton.attr("data-name");
+  const name = imgButton.attr("data-filename");
 
   if (!imgSrc || !name) return;
 
-  if (keyPressed('config') && game.user.isGM) {
+  if (keyPressed("config") && game.user.isGM) {
     const regenStyle = (token, img) => {
-      const mappings = token.document.getFlag('token-variants', 'userMappings') || {};
-      const name = imgButton.attr('data-filename');
+      const mappings =
+        token.document.getFlag("token-variants", "userMappings") || {};
+      const name = imgButton.attr("data-filename");
       const [title, style] = genTitleAndStyle(mappings, img, name);
       imgButton
-        .closest('.token-variants-wrap')
+        .closest(".token-variants-wrap")
         .find(`.token-variants-button-select[data-name='${img}']`)
-        .css('box-shadow', style)
-        .prop('title', title);
+        .css("box-shadow", style)
+        .prop("title", title);
     };
     new UserList(token, imgSrc, regenStyle).render(true);
   } else if (token.actor) {
@@ -535,20 +615,20 @@ async function _onImageRightClick(event, tokenId) {
 
     // Set shared variants as an actor flag
     setVariants(tokenActor, variants);
-    imgButton.find('.fa-share').toggleClass('active'); // Display green arrow
+    imgbutton.querySelector(".fa-share").toggleClass("active"); // Display green arrow
   }
 }
 
 async function _onImageSearchKeyUp(event, token) {
   event.preventDefault();
   event.stopPropagation();
-  if (event.key === 'Enter' || event.keyCode === 13) {
+  if (event.key === "Enter" || event.keyCode === 13) {
     if (event.target.value.length >= 3) {
-      const button = $(event.target).closest('.control-icon');
-      button.find('.token-variants-wrap').remove();
+      const button = event.target.closest(".control-icon");
+      button.querySelector(".token-variants-wrap").remove();
       const sideSelect = await renderSideSelect(token, event.target.value);
       if (sideSelect) {
-        sideSelect.addClass('active');
+        sideSelect.addClass("active");
         button.append(sideSelect);
       }
     }
@@ -557,7 +637,7 @@ async function _onImageSearchKeyUp(event, token) {
 
 function genTitleAndStyle(mappings, imgSrc, name) {
   let title = TVA_CONFIG.worldHud.showFullPath ? imgSrc : name;
-  let style = '';
+  let style = "";
   let offset = 2;
   for (const [userId, img] of Object.entries(mappings)) {
     if (img === imgSrc) {
@@ -585,7 +665,7 @@ async function updateActorWithSimilarName(imgSrc, imgName, actor) {
         fuzzyLimit: 50,
       },
     },
-    true
+    true,
   );
 
   if (results && results.length !== 0) {
@@ -596,63 +676,71 @@ async function updateActorWithSimilarName(imgSrc, imgName, actor) {
 }
 
 function activateStatusEffectListeners(token) {
-  if (TVA_CONFIG.permissions.statusConfig[game.user.role] && token.actorId && game.actors.get(token.actorId)) {
-    $('.control-icon[data-action="effects"]')
-      .find('img:first')
-      .click((event) => {
-        event.preventDefault();
-        if (keyPressed('config')) {
-          event.stopPropagation();
-          new EffectMappingForm(token).render(true);
-        }
-      });
+  if (
+    TVA_CONFIG.permissions.statusConfig[game.user.role] &&
+    token.actorId &&
+    game.actors.get(token.actorId)
+  ) {
+    const iconEffects = document.querySelector(
+      '.control-icon[data-action="effects"]',
+    );
+    // if (iconEffects) {
+    //   const imgFirst =
+    // }
+    '.control-icon[data-action="effects"]'.find("img:first").click((event) => {
+      event.preventDefault();
+      if (keyPressed("config")) {
+        event.stopPropagation();
+        new EffectMappingForm(token).render(true);
+      }
+    });
 
-    $('.control-icon[data-action="visibility"]')
-      .find('img')
-      .click((event) => {
-        event.preventDefault();
-        if (keyPressed('config')) {
-          event.stopPropagation();
-          new EffectMappingForm(token, {
-            createMapping: { label: 'In Combat', expression: 'token-variants-visibility' },
-          }).render(true);
-        }
-      });
+    '.control-icon[data-action="visibility"]'.find("img").click((event) => {
+      event.preventDefault();
+      if (keyPressed("config")) {
+        event.stopPropagation();
+        new EffectMappingForm(token, {
+          createMapping: {
+            label: "In Combat",
+            expression: "token-variants-visibility",
+          },
+        }).render(true);
+      }
+    });
 
-    $('.control-icon[data-action="combat"]')
-      .find('img')
-      .click((event) => {
-        event.preventDefault();
-        if (keyPressed('config')) {
-          event.stopPropagation();
-          new EffectMappingForm(token, {
-            createMapping: { label: 'In Combat', expression: 'token-variants-combat' },
-          }).render(true);
-        }
-      });
+    '.control-icon[data-action="combat"]'.find("img").click((event) => {
+      event.preventDefault();
+      if (keyPressed("config")) {
+        event.stopPropagation();
+        new EffectMappingForm(token, {
+          createMapping: {
+            label: "In Combat",
+            expression: "token-variants-combat",
+          },
+        }).render(true);
+      }
+    });
 
-    $('.status-effects')
-      .find('img')
-      .click((event) => {
-        event.preventDefault();
-        if (keyPressed('config')) {
-          event.stopPropagation();
+    ".status-effects".find("img").click((event) => {
+      event.preventDefault();
+      if (keyPressed("config")) {
+        event.stopPropagation();
 
-          let effectName = $(event.target).data('tooltip');
-          if (game.system.id === 'pf2e') {
-            effectName = $(event.target).closest('picture').attr('title');
-          }
-          new EffectMappingForm(token, {
-            createMapping: { label: effectName, expression: effectName },
-          }).render(true);
+        let effectName = event.target.data("tooltip");
+        if (game.system.id === "pf2e") {
+          effectName = event.target.closest("picture").attr("title");
         }
-      });
+        new EffectMappingForm(token, {
+          createMapping: { label: effectName, expression: effectName },
+        }).render(true);
+      }
+    });
   }
 }
 
 function getVariants(actor) {
   if (TOKEN_HUD_VARIANTS.variants) return TOKEN_HUD_VARIANTS.variants;
-  else return actor?.getFlag('token-variants', 'variants') || [];
+  else return actor?.getFlag("token-variants", "variants") || [];
 }
 
 function setVariants(actor, variants) {

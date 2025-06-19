@@ -9,6 +9,10 @@
     "build": "webpack"
   },
   "dependencies": {
-    "terser-webpack-plugin": "^5.3.10"
+    "eslint_d": "^14.3.0",
+    "prettier": "^3.5.3",
+    "terser-webpack-plugin": "^5.3.10",
+    "typescript": "^5.8.3",
+    "typescript-language-server": "^4.3.4"
   }
 }

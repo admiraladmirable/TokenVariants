@@ -9,7 +9,7 @@ export default class EditJsonConfig extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: 'token-variants-config-json-edit',
       classes: ['sheet'],
-      template: 'modules/token-variants/templates/configJsonEdit.html',
+      template: 'modules/token-variants/token-variants/templates/configJsonEdit.html',
       resizable: true,
       minimizable: false,
       title: 'Edit Token Configuration',
@@ -45,12 +45,12 @@ export default class EditJsonConfig extends FormApplication {
       }
     });
 
-    html.find('.remove').click(this._onRemove.bind(this));
-    html.find('.format').click(this._onFormat.bind(this));
+    html.querySelector('.remove').click(this._onRemove.bind(this));
+    html.querySelector('.format').click(this._onFormat.bind(this));
   }
 
   async _validateJSON(event) {
-    const controls = $(event.target).closest('form').find('button[type="submit"], button.format');
+    const controls = event.target.closest('form').find('button[type="submit"], button.format');
     try {
       this.config = JSON.parse(event.target.value);
       this.config = foundry.utils.expandObject(this.config);
@@ -67,7 +67,7 @@ export default class EditJsonConfig extends FormApplication {
   }
 
   async _onFormat(event) {
-    $(event.target).closest('form').find('textarea[name="config"]').val(JSON.stringify(this.config, null, 2));
+    event.target.closest('form').find('textarea[name="config"]').val(JSON.stringify(this.config, null, 2));
   }
 
   /**

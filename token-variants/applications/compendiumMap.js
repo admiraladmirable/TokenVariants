@@ -1,16 +1,20 @@
-import { showArtSelect } from '../token-variants.mjs';
+import { showArtSelect } from "../token-variants.mjs";
 import {
   BASE_IMAGE_CATEGORIES,
   SEARCH_TYPE,
   updateActorImage,
   updateTokenImage,
   userRequiresImageCache,
-} from '../scripts/utils.js';
-import { addToQueue, ArtSelect, renderFromQueue } from './artSelect.js';
-import { getSearchOptions, TVA_CONFIG, updateSettings } from '../scripts/settings.js';
-import ConfigureSettings from './configureSettings.js';
-import MissingImageConfig from './missingImageConfig.js';
-import { cacheImages, doImageSearch } from '../scripts/search.js';
+} from "../scripts/utils.js";
+import { addToQueue, ArtSelect, renderFromQueue } from "./artSelect.js";
+import {
+  getSearchOptions,
+  TVA_CONFIG,
+  updateSettings,
+} from "../scripts/settings.js";
+import ConfigureSettings from "./configureSettings.js";
+import MissingImageConfig from "./missingImageConfig.js";
+import { cacheImages, doImageSearch } from "../scripts/search.js";
 
 async function autoApply(actor, image1, image2, formData, typeOverride) {
   let portraitFound = formData.ignorePortrait;
@@ -154,18 +158,24 @@ export default class CompendiumMapConfig extends FormApplication {
   constructor() {
     super({}, {});
     this.searchOptions = foundry.utils.deepClone(getSearchOptions());
-    foundry.utils.mergeObject(this.searchOptions, foundry.utils.deepClone(TVA_CONFIG.compendiumMapper.searchOptions));
+    foundry.utils.mergeObject(
+      this.searchOptions,
+      foundry.utils.deepClone(TVA_CONFIG.compendiumMapper.searchOptions),
+    );
     this._fixSearchPaths();
   }
 
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'token-variants-compendium-map-config',
-      classes: ['sheet'],
-      template: 'modules/token-variants/templates/compendiumMap.html',
+      id: "token-variants-compendium-map-config",
+      classes: ["sheet"],
+      template:
+        "modules/token-variants/token-variants/templates/compendiumMap.html",
       resizable: false,
       minimizable: false,
-      title: game.i18n.localize('token-variants.settings.compendium-mapper.Name'),
+      title: game.i18n.localize(
+        "token-variants.settings.compendium-mapper.Name",
+      ),
       width: 500,
     });
   }
@@ -174,19 +184,25 @@ export default class CompendiumMapConfig extends FormApplication {
     let data = super.getData(options);
     data = foundry.utils.mergeObject(data, TVA_CONFIG.compendiumMapper);
 
-    const supportedPacks = ['Actor', 'Cards', 'Item', 'Macro', 'RollTable'];
-    data.supportedPacks = supportedPacks.join(', ');
+    const supportedPacks = ["Actor", "Cards", "Item", "Macro", "RollTable"];
+    data.supportedPacks = supportedPacks.join(", ");
 
     const packs = [];
     game.packs.forEach((pack) => {
       if (!pack.locked && supportedPacks.includes(pack.documentName)) {
-        packs.push({ title: pack.title, id: pack.collection, type: pack.documentName });
+        packs.push({
+          title: pack.title,
+          id: pack.collection,
+          type: pack.documentName,
+        });
       }
     });
     data.compendiums = packs;
     data.compendium = TVA_CONFIG.compendiumMapper.compendium;
 
-    data.categories = BASE_IMAGE_CATEGORIES.concat(TVA_CONFIG.customImageCategories);
+    data.categories = BASE_IMAGE_CATEGORIES.concat(
+      TVA_CONFIG.customImageCategories,
+    );
     data.category = TVA_CONFIG.compendiumMapper.category;
 
     return data;
@@ -197,40 +213,66 @@ export default class CompendiumMapConfig extends FormApplication {
    */
   activateListeners(html) {
     super.activateListeners(html);
-    html.find('.token-variants-override-category').change(this._onCategoryOverride).trigger('change');
-    html.find('.token-variants-auto-apply').change(this._onAutoApply);
-    html.find('.token-variants-diff-images').change(this._onDiffImages);
-    html.find(`.token-variants-search-options`).on('click', this._onSearchOptions.bind(this));
-    html.find(`.token-variants-missing-images`).on('click', this._onMissingImages.bind(this));
+    html
+      .querySelector(".token-variants-override-category")
+      .change(this._onCategoryOverride)
+      .trigger("change");
+    html.querySelector(".token-variants-auto-apply").change(this._onAutoApply);
+    html
+      .querySelector(".token-variants-diff-images")
+      .change(this._onDiffImages);
+    html
+      .querySelector(`.token-variants-search-options`)
+      .on("click", this._onSearchOptions.bind(this));
+    html
+      .querySelector(`.token-variants-missing-images`)
+      .on("click", this._onMissingImages.bind(this));
 
-    $(html).find('[name="compendium"]').change(this._onCompendiumSelect.bind(this)).trigger('change');
+    html
+      .find('[name="compendium"]')
+      .change(this._onCompendiumSelect.bind(this))
+      .trigger("change");
   }
 
   async _onAutoApply(event) {
-    $(event.target).closest('form').find('.token-variants-auto-art-select').prop('disabled', !event.target.checked);
+    event.target
+      .closest("form")
+      .find(".token-variants-auto-art-select")
+      .prop("disabled", !event.target.checked);
   }
 
   async _onCategoryOverride(event) {
-    $(event.target).closest('form').find('.token-variants-category').prop('disabled', !event.target.checked);
+    event.target
+      .closest("form")
+      .find(".token-variants-category")
+      .prop("disabled", !event.target.checked);
   }
 
   async _onDiffImages(event) {
-    $(event.target).closest('form').find('.token-variants-tp-ignore').prop('disabled', !event.target.checked);
+    event.target
+      .closest("form")
+      .find(".token-variants-tp-ignore")
+      .prop("disabled", !event.target.checked);
   }
 
   async _onCompendiumSelect(event) {
-    const compendium = game.packs.get($(event.target).val());
+    const compendium = game.packs.get(event.target.val());
     if (compendium) {
-      $(event.target)
-        .closest('form')
-        .find('.token-specific')
-        .css('visibility', compendium.documentName === 'Actor' ? 'visible' : 'hidden');
+      event.target
+        .closest("form")
+        .find(".token-specific")
+        .css(
+          "visibility",
+          compendium.documentName === "Actor" ? "visible" : "hidden",
+        );
     }
   }
 
   _fixSearchPaths() {
     if (!this.searchOptions.searchPaths?.length) {
-      this.searchOptions.searchPaths = foundry.utils.deepClone(TVA_CONFIG.searchPaths);
+      this.searchOptions.searchPaths = foundry.utils.deepClone(
+        TVA_CONFIG.searchPaths,
+      );
     }
   }
 
@@ -255,7 +297,11 @@ export default class CompendiumMapConfig extends FormApplication {
   }
 
   async startMapping(formData) {
-    if (formData.diffImages && formData.ignoreToken && formData.ignorePortrait) {
+    if (
+      formData.diffImages &&
+      formData.ignoreToken &&
+      formData.ignorePortrait
+    ) {
       return;
     }
 
@@ -264,10 +310,14 @@ export default class CompendiumMapConfig extends FormApplication {
       TVA_CONFIG.searchPaths = formData.searchOptions.searchPaths;
     }
 
-    if (formData.cache || !userRequiresImageCache() || formData.searchOptions.searchPaths?.length) {
-      console.log('TVA-Mapper: Starting Image caching.');
+    if (
+      formData.cache ||
+      !userRequiresImageCache() ||
+      formData.searchOptions.searchPaths?.length
+    ) {
+      console.log("TVA-Mapper: Starting Image caching.");
       await cacheImages();
-      console.log('TVA-Mapper: Caching finished.');
+      console.log("TVA-Mapper: Caching finished.");
     }
 
     const endMapping = function () {
@@ -279,36 +329,48 @@ export default class CompendiumMapConfig extends FormApplication {
 
     const compendium = game.packs.get(formData.compendium);
     let missingImageList = TVA_CONFIG.compendiumMapper.missingImages
-      .filter((mi) => mi.document === 'all' || mi.document === compendium.documentName)
+      .filter(
+        (mi) =>
+          mi.document === "all" || mi.document === compendium.documentName,
+      )
       .map((mi) => mi.image);
     const typeOverride = formData.overrideCategory ? formData.category : null;
     let artSelectDisplayed = false;
 
     let processItem;
     let consoleProcessedTracking = 0;
-    if (compendium.documentName === 'Actor') {
+    if (compendium.documentName === "Actor") {
       processItem = async function (item) {
         const actor = item;
-        if (actor.name === '#[CF_tempEntity]') return; // Compendium Folders module's control entity
+        if (actor.name === "#[CF_tempEntity]") return; // Compendium Folders module's control entity
 
-        let hasPortrait = actor.img !== CONST.DEFAULT_TOKEN && !missingImageList.includes(actor.img);
+        let hasPortrait =
+          actor.img !== CONST.DEFAULT_TOKEN &&
+          !missingImageList.includes(actor.img);
         let hasToken =
           actor.prototypeToken.texture.src !== CONST.DEFAULT_TOKEN &&
           !missingImageList.includes(actor.prototypeToken.texture.src);
         if (formData.syncImages && hasPortrait !== hasToken) {
           if (hasPortrait) {
-            await updateTokenImage(actor.img, { actor: actor, applyDefaultConfig: false });
+            await updateTokenImage(actor.img, {
+              actor: actor,
+              applyDefaultConfig: false,
+            });
           } else {
             await updateActorImage(actor, actor.prototypeToken.texture.src);
           }
           hasPortrait = hasToken = true;
         }
 
-        let includeThisActor = !(formData.missingOnly && hasPortrait) && !formData.ignorePortrait;
-        let includeThisToken = !(formData.missingOnly && hasToken) && !formData.ignoreToken;
+        let includeThisActor =
+          !(formData.missingOnly && hasPortrait) && !formData.ignorePortrait;
+        let includeThisToken =
+          !(formData.missingOnly && hasToken) && !formData.ignoreToken;
 
-        const image1 = formData.showImages ? actor.img : '';
-        const image2 = formData.showImages ? actor.prototypeToken.texture.src : '';
+        const image1 = formData.showImages ? actor.img : "";
+        const image2 = formData.showImages
+          ? actor.prototypeToken.texture.src
+          : "";
 
         if (includeThisActor || includeThisToken) {
           if (formData.autoApply) {
@@ -321,18 +383,25 @@ export default class CompendiumMapConfig extends FormApplication {
 
         consoleProcessedTracking++;
         if (consoleProcessedTracking % 100 === 0)
-          console.log(`TVA-Mapper: Processed ${consoleProcessedTracking} ${compendium.documentName}s`);
+          console.log(
+            `TVA-Mapper: Processed ${consoleProcessedTracking} ${compendium.documentName}s`,
+          );
       };
     } else {
       processItem = async function (item) {
         const doc = item;
-        if (doc.name === '#[CF_tempEntity]') return; // Compendium Folders module's control entity
+        if (doc.name === "#[CF_tempEntity]") return; // Compendium Folders module's control entity
 
-        let defaultImg = '';
+        let defaultImg = "";
         if (doc.schema.fields.img || doc.schema.fields.texture) {
-          defaultImg = (doc.schema.fields.img ?? doc.schema.fields.texture).initial(doc);
+          defaultImg = (
+            doc.schema.fields.img ?? doc.schema.fields.texture
+          ).initial(doc);
         }
-        const hasImage = doc.img != null && doc.img !== defaultImg && !missingImageList.includes(doc.img);
+        const hasImage =
+          doc.img != null &&
+          doc.img !== defaultImg &&
+          !missingImageList.includes(doc.img);
 
         let imageFound = false;
         if (formData.missingOnly && hasImage) return;
@@ -349,12 +418,15 @@ export default class CompendiumMapConfig extends FormApplication {
           }
         }
 
-        if (!formData.autoApply || (formData.autoDisplayArtSelect && !imageFound)) {
+        if (
+          !formData.autoApply ||
+          (formData.autoDisplayArtSelect && !imageFound)
+        ) {
           artSelectDisplayed = true;
           addToQueue(doc.name, {
             searchType: typeOverride ?? compendium.documentName,
             object: doc,
-            image1: formData.showImages ? doc.img : '',
+            image1: formData.showImages ? doc.img : "",
             displayMode: ArtSelect.IMAGE_DISPLAY.IMAGE,
             searchOptions: formData.searchOptions,
             callback: async function (imgSrc, name) {
@@ -365,7 +437,9 @@ export default class CompendiumMapConfig extends FormApplication {
 
         consoleProcessedTracking++;
         if (consoleProcessedTracking % 100 === 0)
-          console.log(`TVA-Mapper: Processed ${consoleProcessedTracking} ${compendium.documentName}s`);
+          console.log(
+            `TVA-Mapper: Processed ${consoleProcessedTracking} ${compendium.documentName}s`,
+          );
       };
     }
 
@@ -377,7 +451,7 @@ export default class CompendiumMapConfig extends FormApplication {
       let processing = true;
       let stopProcessing = false;
       let processed = 0;
-      let counter = $(`<p>CACHING 0/${documents.length}</p>`);
+      let counter = `<p>CACHING 0/${documents.length}</p>`;
       let d;
 
       const startProcessing = async function () {
@@ -393,7 +467,7 @@ export default class CompendiumMapConfig extends FormApplication {
         }
         if (stopProcessing || processed === documents.length) {
           d?.close(true);
-          addToQueue('DUMMY', { execute: endMapping });
+          addToQueue("DUMMY", { execute: endMapping });
           renderFromQueue();
         }
       };
@@ -407,21 +481,21 @@ export default class CompendiumMapConfig extends FormApplication {
         buttons: {
           cancel: {
             icon: '<i class="fas fa-stop-circle"></i>',
-            label: 'Cancel',
+            label: "Cancel",
           },
         },
-        default: 'cancel',
+        default: "cancel",
         render: (html) => {
-          html.find('.counter').append(counter);
-          const spinner = html.find('.fa-spinner');
-          html.find('.pause').on('click', () => {
+          html.querySelector(".counter").append(counter);
+          const spinner = html.querySelector(".fa-spinner");
+          html.querySelector(".pause").on("click", () => {
             if (processing) {
               processing = false;
-              spinner.removeClass('fa-pulse');
+              spinner.removeClass("fa-pulse");
             } else {
               processing = true;
               startProcessing();
-              spinner.addClass('fa-pulse');
+              spinner.addClass("fa-pulse");
             }
           });
           setTimeout(async () => startProcessing(), 1000);
@@ -438,10 +512,12 @@ export default class CompendiumMapConfig extends FormApplication {
     } else {
       const tasks = documents.map(processItem);
       Promise.all(tasks).then(() => {
-        addToQueue('DUMMY', { execute: endMapping });
+        addToQueue("DUMMY", { execute: endMapping });
         renderFromQueue();
         if (formData.missingOnly && !artSelectDisplayed) {
-          ui.notifications.warn('Token Variant Art: No documents found containing missing images.');
+          ui.notifications.warn(
+            "Token Variant Art: No documents found containing missing images.",
+          );
         }
       });
     }
@@ -455,7 +531,12 @@ export default class CompendiumMapConfig extends FormApplication {
     // If search paths are the same, remove them from searchOptions
     if (
       !this.searchOptions.searchPaths?.length ||
-      foundry.utils.isEmpty(foundry.utils.diffObject(this.searchOptions.searchPaths, TVA_CONFIG.searchPaths))
+      foundry.utils.isEmpty(
+        foundry.utils.diffObject(
+          this.searchOptions.searchPaths,
+          TVA_CONFIG.searchPaths,
+        ),
+      )
     ) {
       this.searchOptions.searchPaths = [];
     }

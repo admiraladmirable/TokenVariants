@@ -1,15 +1,34 @@
-import TokenCustomConfig from './tokenCustomConfig.js';
-import { isVideo, isImage, keyPressed, SEARCH_TYPE, BASE_IMAGE_CATEGORIES, getFileName } from '../scripts/utils.js';
-import { showArtSelect } from '../token-variants.mjs';
-import { TVA_CONFIG, getSearchOptions } from '../scripts/settings.js';
-import { cacheImages } from '../scripts/search.js';
+import TokenCustomConfig from "./tokenCustomConfig.js";
+import {
+  isVideo,
+  isImage,
+  keyPressed,
+  SEARCH_TYPE,
+  BASE_IMAGE_CATEGORIES,
+  getFileName,
+  waitForTokenTexture,
+} from "../scripts/utils.js";
+import { showArtSelect } from "../token-variants.mjs";
+import { TVA_CONFIG, getSearchOptions } from "../scripts/settings.js";
+import { cacheImages } from "../scripts/search.js";
+
+function showButtonWithText(id, text) {
+  const btn = document.getElementById(id);
+  if (btn) {
+    btn.innerHTML = text;
+    btn.style.display = "";
+  }
+}
 
 export function addToArtSelectQueue(search, options) {
   ArtSelect.queue.push({
     search: search,
     options: options,
   });
-  $('button#token-variant-art-clear-queue').html(`Clear Queue (${ArtSelect.queue.length})`).show();
+  showButtonWithText(
+    "button#token-variant-art-clear-queue",
+    `Clear Queue (${ArtSelect.queue.length})`,
+  );
 }
 
 export function addToQueue(search, options) {
@@ -21,10 +40,15 @@ export function addToQueue(search, options) {
 
 export function renderFromQueue(force = false) {
   if (!force) {
-    const artSelects = Object.values(ui.windows).filter((app) => app instanceof ArtSelect);
+    const artSelects = Object.values(ui.windows).filter(
+      (app) => app instanceof ArtSelect,
+    );
     if (artSelects.length !== 0) {
       if (ArtSelect.queue.length !== 0)
-        $('button#token-variant-art-clear-queue').html(`Clear Queue (${ArtSelect.queue.length})`).show();
+        showButtonWithText(
+          "button#token-variant-art-clear-queue",
+          `Clear Queue (${ArtSelect.queue.length})`,
+        );
       return;
     }
   }
@@ -74,18 +98,24 @@ export class ArtSelect extends FormApplication {
       callback = null,
       searchType = null,
       allImages = null,
-      image1 = '',
-      image2 = '',
+      image1 = "",
+      image2 = "",
       displayMode = ArtSelect.IMAGE_DISPLAY.NONE,
       multipleSelection = false,
       searchOptions = {},
-    } = {}
+    } = {},
   ) {
-    let title = game.i18n.localize('token-variants.windows.art-select.select-variant');
+    let title = game.i18n.localize(
+      "token-variants.windows.art-select.select-variant",
+    );
     if (searchType === SEARCH_TYPE.TOKEN)
-      title = game.i18n.localize('token-variants.windows.art-select.select-token-art');
+      title = game.i18n.localize(
+        "token-variants.windows.art-select.select-token-art",
+      );
     else if (searchType === SEARCH_TYPE.PORTRAIT)
-      title = game.i18n.localize('token-variants.windows.art-select.select-portrait-art');
+      title = game.i18n.localize(
+        "token-variants.windows.art-select.select-portrait-art",
+      );
 
     super(
       {},
@@ -96,7 +126,7 @@ export class ArtSelect extends FormApplication {
         left: ArtSelect.LEFT,
         top: ArtSelect.TOP,
         title: title,
-      }
+      },
     );
     this.search = search;
     this.allImages = allImages;
@@ -108,20 +138,27 @@ export class ArtSelect extends FormApplication {
     this.displayMode = displayMode;
     this.multipleSelection = multipleSelection;
     this.searchType = searchType;
-    this.searchOptions = foundry.utils.mergeObject(searchOptions, getSearchOptions(), {
-      overwrite: false,
-    });
+    this.searchOptions = foundry.utils.mergeObject(
+      searchOptions,
+      getSearchOptions(),
+      {
+        overwrite: false,
+      },
+    );
     ArtSelect.instance = this;
 
     const constructorName = `ArtSelect`;
-    Object.defineProperty(ArtSelect.prototype.constructor, 'name', { value: constructorName });
+    Object.defineProperty(ArtSelect.prototype.constructor, "name", {
+      value: constructorName,
+    });
   }
 
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'token-variants-art-select',
-      classes: ['sheet'],
-      template: 'modules/token-variants/templates/artSelect.html',
+      id: "token-variants-art-select",
+      classes: ["sheet"],
+      template:
+        "modules/token-variants/token-variants/templates/artSelect.html",
       resizable: true,
       minimizable: false,
     });
@@ -131,9 +168,9 @@ export class ArtSelect extends FormApplication {
     const buttons = super._getHeaderButtons();
 
     buttons.unshift({
-      label: 'Rebuild Cache',
-      class: 'cache-rebuild',
-      icon: 'fas fa-sync-alt',
+      label: "Rebuild Cache",
+      class: "cache-rebuild",
+      icon: "fas fa-sync-alt",
       onclick: async () => {
         await cacheImages();
         this._performSearch(this.search, true);
@@ -141,12 +178,12 @@ export class ArtSelect extends FormApplication {
     });
 
     buttons.unshift({
-      label: 'FilePicker',
-      class: 'file-picker',
-      icon: 'fas fa-file-import fa-fw',
+      label: "FilePicker",
+      class: "file-picker",
+      icon: "fas fa-file-import fa-fw",
       onclick: () => {
         new FilePicker({
-          type: 'imagevideo',
+          type: "imagevideo",
           callback: (path) => {
             if (!this.preventClose) {
               this.close();
@@ -159,9 +196,9 @@ export class ArtSelect extends FormApplication {
       },
     });
     buttons.unshift({
-      label: 'Image Category',
-      class: 'type',
-      icon: 'fas fa-swatchbook',
+      label: "Image Category",
+      class: "type",
+      icon: "fas fa-swatchbook",
       onclick: () => {
         if (ArtSelect.instance) ArtSelect.instance._typeSelect();
       },
@@ -171,13 +208,15 @@ export class ArtSelect extends FormApplication {
   }
 
   _typeSelect() {
-    const categories = BASE_IMAGE_CATEGORIES.concat(TVA_CONFIG.customImageCategories);
+    const categories = BASE_IMAGE_CATEGORIES.concat(
+      TVA_CONFIG.customImageCategories,
+    );
 
     const buttons = {};
     for (const c of categories) {
       let label = c;
       if (c === this.searchType) {
-        label = '<b>>>> ' + label + ' <<<</b>';
+        label = "<b>>>> " + label + " <<<</b>";
       }
       buttons[c] = {
         label: label,
@@ -201,7 +240,7 @@ export class ArtSelect extends FormApplication {
     const data = super.getData(options);
     if (this.doc instanceof Item) {
       data.item = true;
-      data.description = this.doc.system?.description?.value ?? '';
+      data.description = this.doc.system?.description?.value ?? "";
     }
     const searchOptions = this.searchOptions;
     const algorithm = searchOptions.algorithm;
@@ -215,10 +254,16 @@ export class ArtSelect extends FormApplication {
     let allButtons = new Map();
     let artFound = false;
 
-    const genLabel = function (str, indices, start = '<mark>', end = '</mark>', fillChar = null) {
+    const genLabel = function (
+      str,
+      indices,
+      start = "<mark>",
+      end = "</mark>",
+      fillChar = null,
+    ) {
       if (!indices) return str;
       let fillStr = fillChar ? fillChar.repeat(str.length) : str;
-      let label = '';
+      let label = "";
       let lastIndex = 0;
       for (const index of indices) {
         label += fillStr.slice(lastIndex, index[0]);
@@ -233,9 +278,15 @@ export class ArtSelect extends FormApplication {
     const genTitle = function (obj) {
       if (!fuzzySearch) return obj.path;
 
-      let percent = Math.ceil((1 - obj.score) * 100) + '%';
+      let percent = Math.ceil((1 - obj.score) * 100) + "%";
       if (searchOptions.runSearchOnPath) {
-        return percent + '\n' + genLabel(obj.path, obj.indices, '', '', '-') + '\n' + obj.path;
+        return (
+          percent +
+          "\n" +
+          genLabel(obj.path, obj.indices, "", "", "-") +
+          "\n" +
+          obj.path
+        );
       }
       return percent;
     };
@@ -253,12 +304,19 @@ export class ArtSelect extends FormApplication {
           type: vid || img,
           name: imageObj.name,
           label:
-            fuzzySearch && !searchOptions.runSearchOnPath ? genLabel(imageObj.name, imageObj.indices) : imageObj.name,
+            fuzzySearch && !searchOptions.runSearchOnPath
+              ? genLabel(imageObj.name, imageObj.indices)
+              : imageObj.name,
           title: genTitle(imageObj),
           hasConfig:
-            this.searchType === SEARCH_TYPE.TOKEN || this.searchType === SEARCH_TYPE.PORTRAIT_AND_TOKEN
+            this.searchType === SEARCH_TYPE.TOKEN ||
+            this.searchType === SEARCH_TYPE.PORTRAIT_AND_TOKEN
               ? Boolean(
-                  tokenConfigs.find((config) => config.tvImgSrc == imageObj.path && config.tvImgName == imageObj.name)
+                  tokenConfigs.find(
+                    (config) =>
+                      config.tvImgSrc == imageObj.path &&
+                      config.tvImgName == imageObj.name,
+                  ),
                 )
               : false,
         });
@@ -274,7 +332,8 @@ export class ArtSelect extends FormApplication {
     data.image2 = this.image2;
     data.displayMode = this.displayMode;
     data.multipleSelection = this.multipleSelection;
-    data.displaySlider = algorithm.fuzzy && algorithm.fuzzyArtSelectPercentSlider;
+    data.displaySlider =
+      algorithm.fuzzy && algorithm.fuzzyArtSelectPercentSlider;
     data.fuzzyThreshold = algorithm.fuzzyThreshold;
     if (data.displaySlider) {
       data.fuzzyThreshold = 100 - data.fuzzyThreshold * 100;
@@ -285,7 +344,7 @@ export class ArtSelect extends FormApplication {
   }
 
   /**
-   * @param {JQuery} html
+   * @param {DOM} html
    */
   activateListeners(html) {
     super.activateListeners(html);
@@ -295,33 +354,38 @@ export class ArtSelect extends FormApplication {
     const preventClose = this.preventClose;
     const multipleSelection = this.multipleSelection;
 
-    const boxes = html.find(`.token-variants-grid-box`);
+    const boxes = html.querySelector(`.token-variants-grid-box`);
     boxes.hover(
       function () {
         if (TVA_CONFIG.playVideoOnHover) {
-          const vid = $(this).siblings('video');
+          const vid = this.siblings("video");
           if (vid.length) {
             vid[0].play();
-            $(this).siblings('.fa-play').hide();
+            this.siblings(".fa-play").hide();
           }
         }
       },
       function () {
         if (TVA_CONFIG.pauseVideoOnHoverOut) {
-          const vid = $(this).siblings('video');
+          const vid = this.siblings("video");
           if (vid.length) {
             vid[0].pause();
             vid[0].currentTime = 0;
-            $(this).siblings('.fa-play').show();
+            this.siblings(".fa-play").show();
           }
         }
-      }
+      },
     );
     boxes.map((box) => {
-      boxes[box].addEventListener('click', async function (event) {
-        if (keyPressed('config')) {
+      boxes[box].addEventListener("click", async function (event) {
+        if (keyPressed("config")) {
           if (object)
-            new TokenCustomConfig(object, {}, event.target.dataset.name, event.target.dataset.filename).render(true);
+            new TokenCustomConfig(
+              object,
+              {},
+              event.target.dataset.name,
+              event.target.dataset.filename,
+            ).render(true);
         } else {
           if (!preventClose) {
             close();
@@ -332,66 +396,75 @@ export class ArtSelect extends FormApplication {
         }
       });
       if (multipleSelection) {
-        boxes[box].addEventListener('contextmenu', async function (event) {
-          $(event.target).toggleClass('selected');
+        boxes[box].addEventListener("contextmenu", async function (event) {
+          event.target.classList.classList.toggle("selected");
         });
       }
     });
 
-    let searchInput = html.find('#custom-art-search');
+    let searchInput = html.querySelector("#custom-art-search");
     searchInput.focus();
     searchInput[0].selectionStart = searchInput[0].selectionEnd = 10000;
 
     searchInput.on(
-      'input',
+      "input",
       delay((event) => {
         this._performSearch(event.target.value);
-      }, 350)
+      }, 350),
     );
 
-    html.find(`button#token-variant-art-clear-queue`).on('click', (event) => {
-      ArtSelect.queue = ArtSelect.queue.filter((callData) => callData.options.execute);
-      $(event.target).hide();
-    });
+    html
+      .querySelector(`button#token-variant-art-clear-queue`)
+      .on("click", (event) => {
+        ArtSelect.queue = ArtSelect.queue.filter(
+          (callData) => callData.options.execute,
+        );
+        event.target.hide();
+      });
 
-    $(html)
+    html
       .find('[name="fuzzyThreshold"]')
       .change((e) => {
-        $(e.target)
-          .siblings('.token-variants-range-value')
+        e.target
+          .siblings(".token-variants-range-value")
           .html(`${parseFloat(e.target.value).toFixed(0)}%`);
-        this.searchOptions.algorithm.fuzzyThreshold = (100 - e.target.value) / 100;
+        this.searchOptions.algorithm.fuzzyThreshold =
+          (100 - e.target.value) / 100;
       })
       .change(
         delay((event) => {
           this._performSearch(this.search, true);
-        }, 350)
+        }, 350),
       );
 
     if (multipleSelection) {
-      html.find(`button#token-variant-art-return-selected`).on('click', () => {
-        if (callback) {
-          const images = [];
-          html
-            .find(`.token-variants-grid-box.selected`)
-            .siblings('.token-variants-grid-image')
-            .each(function () {
-              images.push(this.getAttribute('src'));
+      html
+        .querySelector(`button#token-variant-art-return-selected`)
+        .on("click", () => {
+          if (callback) {
+            const images = [];
+            html
+              .find(`.token-variants-grid-box.selected`)
+              .siblings(".token-variants-grid-image")
+              .each(function () {
+                images.push(this.getAttribute("src"));
+              });
+            callback(images);
+          }
+          close();
+        });
+      html
+        .querySelector(`button#token-variant-art-return-all`)
+        .on("click", () => {
+          if (callback) {
+            const images = [];
+            html.querySelector(`.token-variants-grid-image`).each(function () {
+              images.push(this.getAttribute("src"));
             });
-          callback(images);
-        }
-        close();
-      });
-      html.find(`button#token-variant-art-return-all`).on('click', () => {
-        if (callback) {
-          const images = [];
-          html.find(`.token-variants-grid-image`).each(function () {
-            images.push(this.getAttribute('src'));
-          });
-          callback(images);
-        }
-        close();
-      });
+            callback(images);
+          }
+          close();
+        });
     }
   }
 
@@ -455,24 +528,31 @@ export class ArtSelect extends FormApplication {
   }
 }
 
-export function insertArtSelectButton(html, target, { search = '', searchType = SEARCH_TYPE.TOKEN } = {}) {
-  const button = $(`<button 
-      class="token-variants-image-select-button" 
-      type="button"
-      data-type="imagevideo"
-      data-target="${target}"
-      title="${game.i18n.localize('token-variants.windows.art-select.select-variant')}">
-        <i class="fas fa-images"></i>
-      </button>`);
-  button.on('click', () => {
-    showArtSelect(search, {
-      callback: (imgSrc, name) => {
-        button.siblings(`[name="${target}"]`).val(imgSrc);
-      },
-      searchType,
-    });
-  });
-  const input = html.find(`[name="${target}"]`);
+export function insertArtSelectButton(
+  html,
+  target,
+  { search = "", searchType = SEARCH_TYPE.TOKEN } = {},
+) {
+  const icon = new ElementBuilder("i").className("fas fa-images").build();
+
+  const button = new ElementBuilder("button")
+    .className("token-variants-image-select-button")
+    .type("button")
+    .dataset("type", "imagevideo")
+    .dataset("target", target)
+    .title("token-variants.windows.art-select.select-variant")
+    .on("click", () => {
+      showArtSelect(search, {
+        callback: (imgSrc, name) => {
+          button.siblings(`[name="${target}"]`).val(imgSrc);
+        },
+        searchType,
+      });
+    })
+    .child(icon)
+    .build();
+
+  const input = html.querySelector(`[name="${target}"]`);
   input.after(button);
   return Boolean(input.length);
 }

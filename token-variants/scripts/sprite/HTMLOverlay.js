@@ -22,14 +22,14 @@ export class HTMLOverlay {
     }
 
     if (!HTMLOverlay.container) {
-      HTMLOverlay.container = $('<div id="tva-html-overlays"></div>');
-      $('#hud').append(HTMLOverlay.container);
+      HTMLOverlay.container = '<div id="tva-html-overlays"></div>';
+      "#hud".append(HTMLOverlay.container);
     }
 
     if (this.element) this.remove();
     if (overlayConfig) this.overlayConfig = overlayConfig;
 
-    this.element = $(renderTemplate(this.overlayConfig, this.getData(), force));
+    this.element = renderTemplate(this.overlayConfig, this.getData(), force);
     HTMLOverlay.container.append(this.element);
     this.activateListeners(this.element);
     this.setPosition();
@@ -59,10 +59,12 @@ export class HTMLOverlay {
     if (ratio !== 1) position.transform = `scale(${ratio})`;
     this.element.css(position);
     if (angle != null) {
-      this.element.css({ transform: 'rotate(' + angle + 'deg)' });
+      this.element.css({ transform: "rotate(" + angle + "deg)" });
     }
     if (origin != null) {
-      this.element.css({ 'transform-origin': origin.x + 'px ' + origin.y + 'px' });
+      this.element.css({
+        "transform-origin": origin.x + "px " + origin.y + "px",
+      });
     }
   }
 
@@ -83,7 +85,7 @@ function _compile(html, id) {
       <section class="window-content">
         <form>${html.template}</form>
       </section>
-    </div>`
+    </div>`,
   );
 }
 

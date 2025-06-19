@@ -1,7 +1,7 @@
-import EffectMappingForm from '../applications/effectMappingForm.js';
-import { OverlayConfig } from '../applications/overlayConfig.js';
-import { TVAOverlay } from './sprite/TVAOverlay.js';
-import { evaluateOverlayExpressions } from './token/overlay.js';
+import EffectMappingForm from "../applications/effectMappingForm.js";
+import { OverlayConfig } from "../applications/overlayConfig.js";
+import { TVAOverlay } from "./sprite/TVAOverlay.js";
+import { evaluateOverlayExpressions } from "./token/overlay.js";
 
 export class Reticle {
   static app;
@@ -13,7 +13,7 @@ export class Reticle {
   static dialog = null;
 
   // Offset calculation controls
-  static mode = 'tooltip';
+  static mode = "tooltip";
   static increment = 1;
 
   static _onReticleMove(event) {
@@ -25,7 +25,7 @@ export class Reticle {
       this.config.offsetX = 0;
       this.config.offsetY = 0;
 
-      if (this.mode === 'token') {
+      if (this.mode === "token") {
         this.config.linkRotation = true;
         this.config.linkMirror = true;
       }
@@ -49,7 +49,8 @@ export class Reticle {
       let angle = 0;
       if (!this.config.animation.relative) {
         angle = this.config.angle;
-        if (this.config.linkRotation) angle += this.tvaOverlay.object.document.rotation;
+        if (this.config.linkRotation)
+          angle += this.tvaOverlay.object.document.rotation;
       }
 
       [dx, dy] = rotate(0, 0, dx, dy, angle);
@@ -61,10 +62,10 @@ export class Reticle {
       // // let dx = lPos.x;
       // // let dy = lPos.y;
 
-      if (this.mode === 'static') {
+      if (this.mode === "static") {
         this.config.pOffsetX = dx;
         this.config.pOffsetY = dy;
-      } else if (this.mode === 'token') {
+      } else if (this.mode === "token") {
         this.config.offsetX = -dx / this.tvaOverlay.object.w;
         this.config.offsetY = -dy / this.tvaOverlay.object.h;
       } else {
@@ -75,15 +76,17 @@ export class Reticle {
 
         if (this.tvaOverlay.overlayConfig.parentID) {
           pWidth =
-            (this.tvaOverlay.parent.shapesWidth ?? this.tvaOverlay.parent.width) / this.tvaOverlay.parent.scale.x;
+            (this.tvaOverlay.parent.shapesWidth ??
+              this.tvaOverlay.parent.width) / this.tvaOverlay.parent.scale.x;
           pHeight =
-            (this.tvaOverlay.parent.shapesHeight ?? this.tvaOverlay.parent.height) / this.tvaOverlay.parent.scale.y;
+            (this.tvaOverlay.parent.shapesHeight ??
+              this.tvaOverlay.parent.height) / this.tvaOverlay.parent.scale.y;
         } else {
           pWidth = token.w;
           pHeight = token.h;
         }
 
-        if (this.mode === 'tooltip') {
+        if (this.mode === "tooltip") {
           if (Math.abs(dx) >= pWidth / 2) {
             this.config.offsetX = 0.5 * (dx < 0 ? 1 : -1);
             dx += (pWidth / 2) * (dx < 0 ? 1 : -1);
@@ -147,16 +150,21 @@ export class Reticle {
     }
 
     const interaction = canvas.app.renderer.events;
-    if (!interaction.cursorStyles['reticle']) {
-      interaction.cursorStyles['reticle'] = "url('modules/token-variants/img/reticle.webp'), auto";
+    if (!interaction.cursorStyles["reticle"]) {
+      interaction.cursorStyles["reticle"] =
+        "url('modules/token-variants/token-variants/img/reticle.webp'), auto";
     }
 
     this.tvaOverlay = tvaOverlay;
 
     this.minimizeApps();
-    this.config = evaluateOverlayExpressions(foundry.utils.deepClone(config), this.tvaOverlay.object, {
-      overlayConfig: config,
-    });
+    this.config = evaluateOverlayExpressions(
+      foundry.utils.deepClone(config),
+      this.tvaOverlay.object,
+      {
+        overlayConfig: config,
+      },
+    );
 
     // Setup the overlay to be always visible while we're adjusting its position
     this.config.alwaysVisible = true;
@@ -166,7 +174,7 @@ export class Reticle {
     // Create the reticle overlay
     this.reticleOverlay = new PIXI.Container();
     this.reticleOverlay.hitArea = canvas.dimensions.rect;
-    this.reticleOverlay.cursor = 'reticle';
+    this.reticleOverlay.cursor = "reticle";
     this.reticleOverlay.interactive = true;
     this.reticleOverlay.zIndex = Infinity;
 
@@ -175,26 +183,32 @@ export class Reticle {
       // event.stopPropagation();
     };
 
-    this.reticleOverlay.on('mousedown', (event) => {
+    this.reticleOverlay.on("mousedown", (event) => {
       event.preventDefault();
 
-      if (event.data.originalEvent.which != 2 && event.data.originalEvent.nativeEvent.which != 2) {
+      if (
+        event.data.originalEvent.which != 2 &&
+        event.data.originalEvent.nativeEvent.which != 2
+      ) {
         this.reticleOverlay.isMouseDown = true;
         this._onReticleMove(event);
       }
     });
-    this.reticleOverlay.on('pointermove', (event) => {
+    this.reticleOverlay.on("pointermove", (event) => {
       event.preventDefault();
       // event.stopPropagation();
       this._onReticleMove(event);
     });
-    this.reticleOverlay.on('mouseup', (event) => {
+    this.reticleOverlay.on("mouseup", (event) => {
       event.preventDefault();
       this.reticleOverlay.isMouseDown = false;
     });
-    this.reticleOverlay.on('click', (event) => {
+    this.reticleOverlay.on("click", (event) => {
       event.preventDefault();
-      if (event.data.originalEvent.which == 2 || event.data.originalEvent.nativeEvent.which == 2) {
+      if (
+        event.data.originalEvent.which == 2 ||
+        event.data.originalEvent.nativeEvent.which == 2
+      ) {
         this.deactivate();
       }
     });
@@ -206,45 +220,55 @@ export class Reticle {
 
   static deactivate() {
     if (this.active) {
-      if (this.reticleOverlay) this.reticleOverlay.parent?.removeChild(this.reticleOverlay);
+      if (this.reticleOverlay)
+        this.reticleOverlay.parent?.removeChild(this.reticleOverlay);
       this.active = false;
       this.tvaOverlay = null;
-      if (this.dialog && this.dialog._state !== Application.RENDER_STATES.CLOSED) this.dialog.close(true);
+      if (
+        this.dialog &&
+        this.dialog._state !== Application.RENDER_STATES.CLOSED
+      )
+        this.dialog.close(true);
       this.dialog = null;
       this.maximizeApps();
 
-      const app = Object.values(ui.windows).find((app) => app instanceof OverlayConfig);
+      const app = Object.values(ui.windows).find(
+        (app) => app instanceof OverlayConfig,
+      );
       if (!app) {
         this.config = null;
         return;
       }
-      const form = $(app.form);
+      const form = app.form;
 
-      ['pOffsetX', 'pOffsetY', 'offsetX', 'offsetY'].forEach((field) => {
+      ["pOffsetX", "pOffsetY", "offsetX", "offsetY"].forEach((field) => {
         if (field in this.config) {
           form.find(`[name="${field}"]`).val(this.config[field]);
         }
       });
 
-      if (this.mode === 'token') {
-        ['linkRotation', 'linkMirror'].forEach((field) => {
-          form.find(`[name="${field}"]`).prop('checked', true);
+      if (this.mode === "token") {
+        ["linkRotation", "linkMirror"].forEach((field) => {
+          form.find(`[name="${field}"]`).prop("checked", true);
         });
-        ['linkDimensionsX', 'linkDimensionsY'].forEach((field) => {
-          form.find(`[name="${field}"]`).prop('checked', false);
+        ["linkDimensionsX", "linkDimensionsY"].forEach((field) => {
+          form.find(`[name="${field}"]`).prop("checked", false);
         });
       } else {
-        ['linkRotation', 'linkMirror'].forEach((field) => {
-          form.find(`[name="${field}"]`).prop('checked', false);
+        ["linkRotation", "linkMirror"].forEach((field) => {
+          form.find(`[name="${field}"]`).prop("checked", false);
         });
       }
 
-      if (this.mode === 'hud') {
-        form.find('[name="ui"]').prop('checked', true).trigger('change');
+      if (this.mode === "hud") {
+        form.find('[name="ui"]').prop("checked", true).trigger("change");
       }
 
       form.find('[name="anchor.x"]').val(this.config.anchor.x);
-      form.find('[name="anchor.y"]').val(this.config.anchor.y).trigger('change');
+      form
+        .find('[name="anchor.y"]')
+        .val(this.config.anchor.y)
+        .trigger("change");
       this.config = null;
 
       return true;
@@ -254,7 +278,7 @@ export class Reticle {
 
 function displayControlDialog() {
   const d = new Dialog({
-    title: 'Set Overlay Position',
+    title: "Set Overlay Position",
     content: `
       <style>
         .images { display: flex; }
@@ -263,10 +287,10 @@ function displayControlDialog() {
         .anchorlbl {margin: auto; display: table; }
       </style>
       <div class="images">
-        <a data-id="token"><img src="modules/token-variants/img/token_mode.png"></img></a>
-        <a data-id="tooltip"><img src="modules/token-variants/img/tooltip_mode.png"></img></a>
-        <a data-id="hud"><img src="modules/token-variants/img/hud_mode.png"></img></a>
-        <a data-id="static"><img src="modules/token-variants/img/static_mode.png"></img></a>
+        <a data-id="token"><img src="modules/token-variants/token-variants/img/token_mode.png"></img></a>
+        <a data-id="tooltip"><img src="modules/token-variants/token-variants/img/tooltip_mode.png"></img></a>
+        <a data-id="hud"><img src="modules/token-variants/token-variants/img/hud_mode.png"></img></a>
+        <a data-id="static"><img src="modules/token-variants/token-variants/img/static_mode.png"></img></a>
       </div>
      <br>
       <label class="anchorlbl">Anchor</label>
@@ -293,55 +317,59 @@ function displayControlDialog() {
     buttons: {},
     render: (html) => {
       // Mode Images
-      const images = html.find('.images a');
-      html.find('.images a').on('click', (event) => {
-        images.removeClass('active');
-        const target = $(event.target).closest('a');
-        target.addClass('active');
-        Reticle.mode = target.data('id');
+      const images = html.querySelector(".images a");
+      html.querySelector(".images a").on("click", (event) => {
+        images.removeClass("active");
+        const target = event.target.closest("a");
+        target.addClass("active");
+        Reticle.mode = target.data("id");
       });
-      html.find(`[data-id="${Reticle.mode}"]`).addClass('active');
+      html.querySelector(`[data-id="${Reticle.mode}"]`).addClass("active");
 
       // Anchor
       let anchorX = Reticle.config?.anchor?.x || 0;
       let anchorY = Reticle.config?.anchor?.y || 0;
 
-      let classes = '';
-      if (anchorX < 0.5) classes += '.left';
-      else if (anchorX > 0.5) classes += '.right';
-      else classes += '.center';
+      let classes = "";
+      if (anchorX < 0.5) classes += ".left";
+      else if (anchorX > 0.5) classes += ".right";
+      else classes += ".center";
 
-      if (anchorY < 0.5) classes += '.top';
-      else if (anchorY > 0.5) classes += '.bot';
-      else classes += '.mid';
+      if (anchorY < 0.5) classes += ".top";
+      else if (anchorY > 0.5) classes += ".bot";
+      else classes += ".mid";
 
-      html.find('.tva-anchor').find(classes).prop('checked', true);
+      html.querySelector(".tva-anchor").find(classes).prop("checked", true);
       // end -  Pre-select anchor
 
-      html.find('input[name="anchor"]').on('change', (event) => {
-        const anchor = $(event.target);
+      html.querySelector('input[name="anchor"]').on("change", (event) => {
+        const anchor = event.target;
         let x;
         let y;
-        if (anchor.hasClass('left')) x = 0;
-        else if (anchor.hasClass('center')) x = 0.5;
+        if (anchor.hasClass("left")) x = 0;
+        else if (anchor.hasClass("center")) x = 0.5;
         else x = 1;
 
-        if (anchor.hasClass('top')) y = 0;
-        else if (anchor.hasClass('mid')) y = 0.5;
+        if (anchor.hasClass("top")) y = 0;
+        else if (anchor.hasClass("mid")) y = 0.5;
         else y = 1;
 
         Reticle.config.anchor.x = x;
         Reticle.config.anchor.y = y;
       });
 
-      html.find('[name="step"]').on('input', (event) => {
-        Reticle.increment = $(event.target).val() || 1;
+      html.querySelector('[name="step"]').on("input", (event) => {
+        Reticle.increment = event.target.val() || 1;
       });
     },
     close: () => Reticle.deactivate(),
   });
   d.render(true);
-  setTimeout(() => d.setPosition({ left: 200, top: window.innerHeight / 2, height: 'auto' }), 100);
+  setTimeout(
+    () =>
+      d.setPosition({ left: 200, top: window.innerHeight / 2, height: "auto" }),
+    100,
+  );
   return d;
 }
 

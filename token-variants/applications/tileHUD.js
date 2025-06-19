@@ -1,10 +1,22 @@
-import { getFileName, isImage, isVideo, SEARCH_TYPE, keyPressed } from '../scripts/utils.js';
-import { TVA_CONFIG } from '../scripts/settings.js';
-import FlagsConfig from './flagsConfig.js';
-import { doImageSearch } from '../scripts/search.js';
-import UserList from './userList.js';
+import {
+  getFileName,
+  isImage,
+  isVideo,
+  SEARCH_TYPE,
+  keyPressed,
+} from "../scripts/utils.js";
+import { TVA_CONFIG } from "../scripts/settings.js";
+import FlagsConfig from "./flagsConfig.js";
+import { doImageSearch } from "../scripts/search.js";
+import UserList from "./userList.js";
 
-export async function renderTileHUD(hud, html, tileData, searchText = '', fp_files = null) {
+export async function renderTileHUD(
+  hud,
+  html,
+  tileData,
+  searchText = "",
+  fp_files = null,
+) {
   const tile = hud.object;
   const hudSettings = TVA_CONFIG.hud;
 
@@ -14,67 +26,70 @@ export async function renderTileHUD(hud, html, tileData, searchText = '', fp_fil
   <div class="control-icon" data-action="token-variants-side-selector">
     <img
       id="token-variants-side-button"
-      src="modules/token-variants/img/token-images.svg"
+      src="modules/token-variants/token-variants/img/token-images.svg"
       width="36"
       height="36"
-      title="${game.i18n.localize('token-variants.windows.art-select.select-variant')}"
+      title="${game.i18n.localize("token-variants.windows.art-select.select-variant")}"
     />
   </div>
 `);
 
-  html.find('div.right').last().append(button);
-  html.find('div.right').click(_deactivateTokenVariantsSideSelector);
+  html.querySelector("div.right").last().append(button);
+  html.querySelector("div.right").click(_deactivateTokenVariantsSideSelector);
 
   button.click((event) => _onButtonClick(event, tile));
   button.contextmenu((event) => _onButtonRightClick(event, tile));
 }
 
 async function _onButtonClick(event, tile) {
-  if (keyPressed('config')) {
+  if (keyPressed("config")) {
     setNameDialog(tile);
     return;
   }
 
-  const button = $(event.target).closest('.control-icon');
+  const button = event.target.closest(".control-icon");
 
   // De-activate 'Status Effects'
-  button.closest('div.right').find('div.control-icon.effects').removeClass('active');
-  button.closest('div.right').find('.status-effects').removeClass('active');
+  button
+    .closest("div.right")
+    .find("div.control-icon.effects")
+    .removeClass("active");
+  button.closest("div.right").find(".status-effects").removeClass("active");
 
   // Remove contextmenu
-  button.find('.contextmenu').remove();
+  button.find(".contextmenu").remove();
 
   // Toggle variants side menu
-  button.toggleClass('active');
-  let variantsWrap = button.find('.token-variants-wrap');
-  if (button.hasClass('active')) {
+  button.classList.toggle("active");
+  let variantsWrap = button.find(".token-variants-wrap");
+  if (button.hasClass("active")) {
     if (!variantsWrap.length) {
       variantsWrap = await renderSideSelect(tile);
-      if (variantsWrap) button.find('img').after(variantsWrap);
+      if (variantsWrap) button.find("img").after(variantsWrap);
       else return;
     }
-    variantsWrap.addClass('active');
+    variantsWrap.addClass("active");
   } else {
-    variantsWrap.removeClass('active');
+    variantsWrap.removeClass("active");
   }
 }
 
 function _onButtonRightClick(event, tile) {
   // Display side menu if button is not active yet
-  const button = $(event.target).closest('.control-icon');
-  if (!button.hasClass('active')) {
+  const button = event.target.closest(".control-icon");
+  if (!button.hasClass("active")) {
     // button.trigger('click');
-    button.addClass('active');
+    button.addClass("active");
   }
 
-  if (button.find('.contextmenu').length) {
+  if (button.find(".contextmenu").length) {
     // Contextmenu already displayed. Remove and activate images
-    button.find('.contextmenu').remove();
-    button.removeClass('active').trigger('click');
+    button.find(".contextmenu").remove();
+    button.removeClass("active").trigger("click");
     //button.find('.token-variants-wrap.images').addClass('active');
   } else {
     // Contextmenu is not displayed. Hide images, create it and add it
-    button.find('.token-variants-wrap.images').removeClass('active');
+    button.find(".token-variants-wrap.images").removeClass("active");
     const contextMenu = $(`
     <div class="token-variants-wrap contextmenu active">
       <div class="token-variants-context-menu active">
@@ -88,30 +103,33 @@ function _onButtonRightClick(event, tile) {
 
     // Register contextmenu listeners
     contextMenu
-      .find('.token-variants-side-search')
-      .on('keydown', (event) => _onImageSearchKeyUp(event, tile))
-      .on('click', (event) => {
+      .find(".token-variants-side-search")
+      .on("keydown", (event) => _onImageSearchKeyUp(event, tile))
+      .on("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
       });
-    contextMenu.find('.flags').click((event) => {
+    contextMenu.find(".flags").click((event) => {
       event.preventDefault();
       event.stopPropagation();
       new FlagsConfig(tile).render(true);
     });
-    contextMenu.find('.file-picker').click(async (event) => {
+    contextMenu.find(".file-picker").click(async (event) => {
       event.preventDefault();
       event.stopPropagation();
       new FilePicker({
-        type: 'folder',
+        type: "folder",
         callback: async (path, fp) => {
-          const content = await FilePicker.browse(fp.activeSource, fp.result.target);
+          const content = await FilePicker.browse(
+            fp.activeSource,
+            fp.result.target,
+          );
           let files = content.files.filter((f) => isImage(f) || isVideo(f));
           if (files.length) {
-            button.find('.token-variants-wrap').remove();
+            button.find(".token-variants-wrap").remove();
             const sideSelect = await renderSideSelect(tile, null, files);
             if (sideSelect) {
-              sideSelect.addClass('active');
+              sideSelect.addClass("active");
               button.append(sideSelect);
             }
           }
@@ -122,23 +140,26 @@ function _onButtonRightClick(event, tile) {
 }
 
 function _deactivateTokenVariantsSideSelector(event) {
-  const controlIcon = $(event.target).closest('.control-icon');
-  const dataAction = controlIcon.attr('data-action');
+  const controlIcon = event.target.closest(".control-icon");
+  const dataAction = controlIcon.attr("data-action");
 
   switch (dataAction) {
-    case 'effects':
+    case "effects":
       break; // Effects button
-    case 'thwildcard-selector':
+    case "thwildcard-selector":
       break; // Token HUD Wildcard module button
     default:
       return;
   }
 
-  $(event.target)
-    .closest('div.right')
+  event.target
+    .closest("div.right")
     .find('.control-icon[data-action="token-variants-side-selector"]')
-    .removeClass('active');
-  $(event.target).closest('div.right').find('.token-variants-wrap').removeClass('active');
+    .removeClass("active");
+  event.target
+    .closest("div.right")
+    .find(".token-variants-wrap")
+    .removeClass("active");
 }
 
 async function renderSideSelect(tile, searchText = null, fp_files = null) {
@@ -150,7 +171,9 @@ async function renderSideSelect(tile, searchText = null, fp_files = null) {
   let imageDuplicates = new Set();
   const pushImage = (img) => {
     if (imageDuplicates.has(img.path)) {
-      if (!images.find((obj) => obj.path === img.path && obj.name === img.name)) {
+      if (
+        !images.find((obj) => obj.path === img.path && obj.name === img.name)
+      ) {
         images.push(img);
       }
     } else {
@@ -163,7 +186,7 @@ async function renderSideSelect(tile, searchText = null, fp_files = null) {
     if (searchText !== null && !searchText) return;
 
     if (!searchText) {
-      variants = tile.document.getFlag('token-variants', 'variants') || [];
+      variants = tile.document.getFlag("token-variants", "variants") || [];
       variants.forEach((variant) => {
         for (const name of variant.names) {
           pushImage({ path: variant.imgSrc, name: name });
@@ -171,19 +194,22 @@ async function renderSideSelect(tile, searchText = null, fp_files = null) {
       });
 
       // Parse directory flag and include the images
-      const directoryFlag = tile.document.getFlag('token-variants', 'directory');
+      const directoryFlag = tile.document.getFlag(
+        "token-variants",
+        "directory",
+      );
       if (directoryFlag) {
         let dirFlagImages;
         try {
           let path = directoryFlag.path;
           let source = directoryFlag.source;
-          let bucket = '';
-          if (source.startsWith('s3:')) {
+          let bucket = "";
+          if (source.startsWith("s3:")) {
             bucket = source.substring(3, source.length);
-            source = 's3';
+            source = "s3";
           }
           const content = await FilePicker.browse(source, path, {
-            type: 'imagevideo',
+            type: "imagevideo",
             bucket,
           });
           dirFlagImages = content.files;
@@ -191,14 +217,17 @@ async function renderSideSelect(tile, searchText = null, fp_files = null) {
           dirFlagImages = [];
         }
         dirFlagImages.forEach((f) => {
-          if (isImage(f) || isVideo(f)) pushImage({ path: f, name: getFileName(f) });
+          if (isImage(f) || isVideo(f))
+            pushImage({ path: f, name: getFileName(f) });
         });
       }
     }
 
     // Perform the search if needed
-    const search = searchText ?? tile.document.getFlag('token-variants', 'tileName');
-    const noSearch = !search || (!searchText && worldHudSettings.displayOnlySharedImages);
+    const search =
+      searchText ?? tile.document.getFlag("token-variants", "tileName");
+    const noSearch =
+      !search || (!searchText && worldHudSettings.displayOnlySharedImages);
     let artSearch = noSearch
       ? null
       : await doImageSearch(search, {
@@ -218,7 +247,7 @@ async function renderSideSelect(tile, searchText = null, fp_files = null) {
   }
 
   // Retrieving the possibly custom name attached as a flag to the token
-  let tileImageName = tile.document.getFlag('token-variants', 'name');
+  let tileImageName = tile.document.getFlag("token-variants", "name");
   if (!tileImageName) {
     tileImageName = getFileName(tile.document.texture.src);
   }
@@ -232,26 +261,36 @@ async function renderSideSelect(tile, searchText = null, fp_files = null) {
     let shared = false;
     if (game.user.isGM) {
       variants.forEach((variant) => {
-        if (variant.imgSrc === imageObj.path && variant.names.includes(imageObj.name)) {
+        if (
+          variant.imgSrc === imageObj.path &&
+          variant.names.includes(imageObj.name)
+        ) {
           shared = true;
         }
       });
     }
 
-    const userMappings = tile.document.getFlag('token-variants', 'userMappings') || {};
-    const [title, style] = genTitleAndStyle(userMappings, imageObj.path, imageObj.name);
+    const userMappings =
+      tile.document.getFlag("token-variants", "userMappings") || {};
+    const [title, style] = genTitleAndStyle(
+      userMappings,
+      imageObj.path,
+      imageObj.name,
+    );
 
     imagesParsed.push({
       route: imageObj.path,
       name: imageObj.name,
-      used: imageObj.path === tile.document.texture.src && imageObj.name === tileImageName,
+      used:
+        imageObj.path === tile.document.texture.src &&
+        imageObj.name === tileImageName,
       img,
       vid,
       unknownType: !img && !vid,
       shared: shared,
       hasConfig: false, //hasConfig,
       title: title,
-      style: game.user.isGM && style ? 'box-shadow: ' + style + ';' : null,
+      style: game.user.isGM && style ? "box-shadow: " + style + ";" : null,
     });
   }
 
@@ -261,35 +300,40 @@ async function renderSideSelect(tile, searchText = null, fp_files = null) {
   const imageDisplay = hudSettings.displayAsImage;
   const imageOpacity = hudSettings.imageOpacity / 100;
 
-  const sideSelect = $(
-    await renderTemplate('modules/token-variants/templates/sideSelect.html', {
+  const sideSelect = await renderTemplate(
+    "modules/token-variants/token-variants/templates/sideSelect.html",
+    {
       imagesParsed,
       imageDisplay,
       imageOpacity,
       autoplay: !TVA_CONFIG.playVideoOnHover,
-    })
+    },
   );
 
   // Activate listeners
-  sideSelect.find('video').hover(
+  sideSelect.find("video").hover(
     function () {
       if (TVA_CONFIG.playVideoOnHover) {
         this.play();
-        $(this).siblings('.fa-play').hide();
+        this.siblings(".fa-play").hide();
       }
     },
     function () {
       if (TVA_CONFIG.pauseVideoOnHoverOut) {
         this.pause();
         this.currentTime = 0;
-        $(this).siblings('.fa-play').show();
+        this.siblings(".fa-play").show();
       }
-    }
+    },
   );
-  sideSelect.find('.token-variants-button-select').click((event) => _onImageClick(event, tile));
+  sideSelect
+    .find(".token-variants-button-select")
+    .click((event) => _onImageClick(event, tile));
 
   if (FULL_ACCESS) {
-    sideSelect.find('.token-variants-button-select').on('contextmenu', (event) => _onImageRightClick(event, tile));
+    sideSelect
+      .find(".token-variants-button-select")
+      .on("contextmenu", (event) => _onImageRightClick(event, tile));
   }
 
   return sideSelect;
@@ -301,14 +345,15 @@ async function _onImageClick(event, tile) {
 
   if (!tile) return;
 
-  const imgButton = $(event.target).closest('.token-variants-button-select');
-  const imgSrc = imgButton.attr('data-name');
-  const name = imgButton.attr('data-filename');
+  const imgButton = event.target.closest(".token-variants-button-select");
+  const imgSrc = imgButton.attr("data-name");
+  const name = imgButton.attr("data-filename");
   if (imgSrc) {
     canvas.tiles.hud.clear();
-    await tile.document.update({ 'texture.src': imgSrc });
+    await tile.document.update({ "texture.src": imgSrc });
     try {
-      if (getFileName(imgSrc) !== name) await tile.document.setFlag('token-variants', 'name', name);
+      if (getFileName(imgSrc) !== name)
+        await tile.document.setFlag("token-variants", "name", name);
     } catch (e) {}
   }
 }
@@ -319,28 +364,29 @@ async function _onImageRightClick(event, tile) {
 
   if (!tile) return;
 
-  const imgButton = $(event.target).closest('.token-variants-button-select');
-  const imgSrc = imgButton.attr('data-name');
-  const name = imgButton.attr('data-filename');
+  const imgButton = event.target.closest(".token-variants-button-select");
+  const imgSrc = imgButton.attr("data-name");
+  const name = imgButton.attr("data-filename");
 
   if (!imgSrc || !name) return;
 
-  if (keyPressed('config') && game.user.isGM) {
+  if (keyPressed("config") && game.user.isGM) {
     const regenStyle = (tile, img) => {
-      const mappings = tile.document.getFlag('token-variants', 'userMappings') || {};
-      const name = imgButton.attr('data-filename');
+      const mappings =
+        tile.document.getFlag("token-variants", "userMappings") || {};
+      const name = imgButton.attr("data-filename");
       const [title, style] = genTitleAndStyle(mappings, img, name);
       imgButton
-        .closest('.token-variants-wrap')
+        .closest(".token-variants-wrap")
         .find(`.token-variants-button-select[data-name='${img}']`)
-        .css('box-shadow', style)
-        .prop('title', title);
+        .css("box-shadow", style)
+        .prop("title", title);
     };
     new UserList(tile, imgSrc, regenStyle).render(true);
     return;
   }
 
-  let variants = tile.document.getFlag('token-variants', 'variants') || [];
+  let variants = tile.document.getFlag("token-variants", "variants") || [];
 
   // Remove selected variant if present in the flag, add otherwise
   let del = false;
@@ -362,22 +408,22 @@ async function _onImageRightClick(event, tile) {
   else if (!updated) variants.push({ imgSrc: imgSrc, names: [name] });
 
   // Set shared variants as a flag
-  tile.document.unsetFlag('token-variants', 'variants');
+  tile.document.unsetFlag("token-variants", "variants");
   if (variants.length > 0) {
-    tile.document.setFlag('token-variants', 'variants', variants);
+    tile.document.setFlag("token-variants", "variants", variants);
   }
-  imgButton.find('.fa-share').toggleClass('active'); // Display green arrow
+  imgButton.find(".fa-share").classList.toggle("active"); // Display green arrow
 }
 
 async function _onImageSearchKeyUp(event, tile) {
-  if (event.key === 'Enter' || event.keyCode === 13) {
+  if (event.key === "Enter" || event.keyCode === 13) {
     event.preventDefault();
     if (event.target.value.length >= 3) {
-      const button = $(event.target).closest('.control-icon');
-      button.find('.token-variants-wrap').remove();
+      const button = event.target.closest(".control-icon");
+      button.find(".token-variants-wrap").remove();
       const sideSelect = await renderSideSelect(tile, event.target.value);
       if (sideSelect) {
-        sideSelect.addClass('active');
+        sideSelect.addClass("active");
         button.append(sideSelect);
       }
     }
@@ -387,7 +433,7 @@ async function _onImageSearchKeyUp(event, tile) {
 
 function genTitleAndStyle(mappings, imgSrc, name) {
   let title = TVA_CONFIG.worldHud.showFullPath ? imgSrc : name;
-  let style = '';
+  let style = "";
   let offset = 2;
   for (const [userId, img] of Object.entries(mappings)) {
     if (img === imgSrc) {
@@ -406,7 +452,8 @@ function genTitleAndStyle(mappings, imgSrc, name) {
 }
 
 function setNameDialog(tile) {
-  const tileName = tile.document.getFlag('token-variants', 'tileName') || tile.id;
+  const tileName =
+    tile.document.getFlag("token-variants", "tileName") || tile.id;
   new Dialog({
     title: `Assign a name to the Tile (3+ chars)`,
     content: `<table style="width:100%"><tr><th style="width:50%"><label>Tile Name</label></th><td style="width:50%"><input type="text" name="input" value="${tileName}"/></td></tr></table>`,
@@ -414,10 +461,10 @@ function setNameDialog(tile) {
       Ok: {
         label: `Save`,
         callback: (html) => {
-          const name = html.find('input').val();
+          const name = html.querySelector("input").val();
           if (name) {
             canvas.tiles.hud.clear();
-            tile.document.setFlag('token-variants', 'tileName', name);
+            tile.document.setFlag("token-variants", "tileName", name);
           }
         },
       },

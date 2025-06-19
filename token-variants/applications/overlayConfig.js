@@ -1,19 +1,39 @@
-import { CORE_SHAPE, DEFAULT_OVERLAY_CONFIG, OVERLAY_SHAPES } from '../scripts/models.js';
-import { VALID_EXPRESSION, getAllEffectMappings } from '../scripts/hooks/effectMappingHooks.js';
-import { evaluateOverlayExpressions, genTexture } from '../scripts/token/overlay.js';
-import { SEARCH_TYPE } from '../scripts/utils.js';
-import { showArtSelect } from '../token-variants.mjs';
-import { sortMappingsToGroups } from './effectMappingForm.js';
-import { getFlagMappings } from '../scripts/settings.js';
-import { Reticle } from '../scripts/reticle.js';
+import {
+  CORE_SHAPE,
+  DEFAULT_OVERLAY_CONFIG,
+  OVERLAY_SHAPES,
+} from "../scripts/models.js";
+import {
+  VALID_EXPRESSION,
+  getAllEffectMappings,
+} from "../scripts/hooks/effectMappingHooks.js";
+import {
+  evaluateOverlayExpressions,
+  genTexture,
+} from "../scripts/token/overlay.js";
+import { SEARCH_TYPE } from "../scripts/utils.js";
+import { showArtSelect } from "../token-variants.mjs";
+import { sortMappingsToGroups } from "./effectMappingForm.js";
+import { getFlagMappings } from "../scripts/settings.js";
+import { Reticle } from "../scripts/reticle.js";
 
 export class OverlayConfig extends FormApplication {
-  constructor(config, callback, token, { mapping, global = false, actor } = {}) {
+  constructor(
+    config,
+    callback,
+    token,
+    { mapping, global = false, actor } = {},
+  ) {
     super({}, {});
     this.config = config ?? {};
 
-    if ((this.config.img || this.config.imgLinked) && !(this.config.img instanceof Array)) {
-      this.config.img = [{ src: this.config.img, linked: this.config.imgLinked }];
+    if (
+      (this.config.img || this.config.imgLinked) &&
+      !(this.config.img instanceof Array)
+    ) {
+      this.config.img = [
+        { src: this.config.img, linked: this.config.imgLinked },
+      ];
     }
 
     this.config.id = mapping.id;
@@ -27,25 +47,34 @@ export class OverlayConfig extends FormApplication {
 
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'token-variants-overlay-config',
-      classes: ['sheet'],
-      template: 'modules/token-variants/templates/overlayConfig.html',
+      id: "token-variants-overlay-config",
+      classes: ["sheet"],
+      template:
+        "modules/token-variants/token-variants/templates/overlayConfig.html",
       resizable: false,
       minimizable: false,
-      title: 'Overlay Settings',
+      title: "Overlay Settings",
       width: 500,
-      height: 'auto',
+      height: "auto",
       //tabs: [{ navSelector: '.sheet-tabs', contentSelector: '.content', initial: 'misc' }, ],
 
       tabs: [
-        { navSelector: '.tabs[data-group="main"]', contentSelector: 'form', initial: 'misc' },
-        { navSelector: '.tabs[data-group="html"]', contentSelector: '.tab[data-tab="html"]', initial: 'template' },
+        {
+          navSelector: '.tabs[data-group="main"]',
+          contentSelector: "form",
+          initial: "misc",
+        },
+        {
+          navSelector: '.tabs[data-group="html"]',
+          contentSelector: '.tab[data-tab="html"]',
+          initial: "template",
+        },
       ],
     });
   }
 
   get title() {
-    let scope = 'GLOBAL';
+    let scope = "GLOBAL";
     if (!this.global && this.actor) {
       scope = this.actor.name;
     }
@@ -58,117 +87,145 @@ export class OverlayConfig extends FormApplication {
   activateListeners(html) {
     super.activateListeners(html);
 
-    html.find('.reticle').on('click', (event) => {
+    html.querySelector(".reticle").on("click", (event) => {
       const icons = this.getPreviewIcons();
       if (icons.length) {
-        Reticle.activate({ tvaOverlay: icons[0].icon, app: this, config: this.previewConfig });
+        Reticle.activate({
+          tvaOverlay: icons[0].icon,
+          app: this,
+          config: this.previewConfig,
+        });
       }
     });
 
-    html.find('.repeat').on('change', (event) => {
-      const fieldset = $(event.target).closest('fieldset');
-      const content = fieldset.find('.content');
+    html.querySelector(".repeat").on("change", (event) => {
+      const fieldset = event.target.closest("fieldset");
+      const content = fieldset.find(".content");
       if (event.target.checked) {
         content.show();
-        fieldset.addClass('active');
+        fieldset.addClass("active");
       } else {
         content.hide();
-        fieldset.removeClass('active');
+        fieldset.removeClass("active");
       }
       this.setPosition();
     });
 
     // Insert Controls to the Shape Legend
-    const shapeLegends = html.find('.shape-legend');
+    const shapeLegends = html.querySelector(".shape-legend");
     let config = this.config;
     shapeLegends.each(function (i) {
-      const legend = $(this);
+      const legend = this;
       legend.append(
         `&nbsp;<a class="cloneShape" data-index="${i}" title="Clone"><i class="fas fa-clone"></i></a>
-         &nbsp;<a class="deleteShape" data-index="${i}" title="Remove"><i class="fas fa-trash-alt"></i></a>`
+         &nbsp;<a class="deleteShape" data-index="${i}" title="Remove"><i class="fas fa-trash-alt"></i></a>`,
       );
       if (i != 0) {
         legend.append(
-          `&nbsp;<a class="moveShapeUp" data-index="${i}" title="Move Up"><i class="fas fa-arrow-up"></i></a>`
+          `&nbsp;<a class="moveShapeUp" data-index="${i}" title="Move Up"><i class="fas fa-arrow-up"></i></a>`,
         );
       }
       if (i != shapeLegends.length - 1) {
         legend.append(
-          `&nbsp;<a class="moveShapeDown" data-index="${i}" title="Move Down"><i class="fas fa-arrow-down"></i></a>`
+          `&nbsp;<a class="moveShapeDown" data-index="${i}" title="Move Down"><i class="fas fa-arrow-down"></i></a>`,
         );
       }
       legend.append(
         `<input class="shape-legend-input" type="text" name="shapes.${i}.label" value="${
-          config.shapes?.[i]?.label ?? ''
-        }">`
+          config.shapes?.[i]?.label ?? ""
+        }">`,
       );
     });
 
     // Shape listeners
-    html.find('.addShape').on('click', this._onAddShape.bind(this));
-    html.find('.addImage').on('click', this._onAddImage.bind(this));
-    html.find('.addEvent').on('click', this._onAddEvent.bind(this));
-    html.find('.deleteShape').on('click', this._onDeleteShape.bind(this));
-    html.find('.deleteImage').on('click', this._onDeleteImage.bind(this));
-    html.find('.deleteEvent').on('click', this._onDeleteEvent.bind(this));
-    html.find('.moveShapeUp').on('click', this._onMoveShapeUp.bind(this));
-    html.find('.moveShapeDown').on('click', this._onMoveShapeDown.bind(this));
-    html.find('.cloneShape').on('click', this._onCloneShape.bind(this));
+    html.querySelector(".addShape").on("click", this._onAddShape.bind(this));
+    html.querySelector(".addImage").on("click", this._onAddImage.bind(this));
+    html.querySelector(".addEvent").on("click", this._onAddEvent.bind(this));
+    html
+      .querySelector(".deleteShape")
+      .on("click", this._onDeleteShape.bind(this));
+    html
+      .querySelector(".deleteImage")
+      .on("click", this._onDeleteImage.bind(this));
+    html
+      .querySelector(".deleteEvent")
+      .on("click", this._onDeleteEvent.bind(this));
+    html
+      .querySelector(".moveShapeUp")
+      .on("click", this._onMoveShapeUp.bind(this));
+    html
+      .querySelector(".moveShapeDown")
+      .on("click", this._onMoveShapeDown.bind(this));
+    html
+      .querySelector(".cloneShape")
+      .on("click", this._onCloneShape.bind(this));
 
-    html.find('input,select').on('change', this._onInputChange.bind(this));
-    html.find('color-picker').on('input', this._onInputChange.bind(this));
-    html.find('textarea').on('change', this._onInputChange.bind(this));
-    const parentId = html.find('[name="parentID"]');
-    parentId.on('change', (event) => {
-      if (event.target.value === 'TOKEN') {
-        html.find('.token-specific-fields').show();
+    html
+      .querySelector("input,select")
+      .on("change", this._onInputChange.bind(this));
+    html
+      .querySelector("color-picker")
+      .on("input", this._onInputChange.bind(this));
+    html.querySelector("textarea").on("change", this._onInputChange.bind(this));
+    const parentId = html.querySelector('[name="parentID"]');
+    parentId.on("change", (event) => {
+      if (event.target.value === "TOKEN") {
+        html.querySelector(".token-specific-fields").show();
       } else {
-        html.find('.token-specific-fields').hide();
+        html.querySelector(".token-specific-fields").hide();
       }
       this.setPosition();
     });
-    parentId.trigger('change');
+    parentId.trigger("change");
     html
       .find('[name="ui"]')
-      .on('change', (event) => {
-        if (parentId.val() === 'TOKEN') {
+      .on("change", (event) => {
+        if (parentId.val() === "TOKEN") {
           if (event.target.checked) {
-            html.find('.ui-hide').hide();
+            html.querySelector(".ui-hide").hide();
           } else {
-            html.find('.ui-hide').show();
+            html.querySelector(".ui-hide").show();
           }
           this.setPosition();
         }
       })
-      .trigger('change');
+      .trigger("change");
 
-    html.find('[name="filter"]').on('change', (event) => {
-      html.find('.filterOptions').empty();
-      const filterOptions = $(genFilterOptionControls(event.target.value));
-      html.find('.filterOptions').append(filterOptions);
-      this.setPosition({ height: 'auto' });
+    html.querySelector('[name="filter"]').on("change", (event) => {
+      html.querySelector(".filterOptions").empty();
+      const filterOptions = genFilterOptionControls(event.target.value);
+      html.querySelector(".filterOptions").append(filterOptions);
+      this.setPosition({ height: "auto" });
       this.activateListeners(filterOptions);
     });
 
-    html.find('.token-variants-image-select-button').click((event) => {
-      showArtSelect(this.token?.name ?? 'overlay', {
+    html.querySelector(".token-variants-image-select-button").click((event) => {
+      showArtSelect(this.token?.name ?? "overlay", {
         searchType: SEARCH_TYPE.TOKEN,
         callback: (imgSrc, imgName) => {
-          if (imgSrc) $(event.target).closest('.form-group').find('input').val(imgSrc).trigger('change');
+          if (imgSrc)
+            event.target
+              .closest(".form-group")
+              .find("input")
+              .val(imgSrc)
+              .trigger("change");
         },
       });
     });
 
-    html.find('.presetImport').on('click', (event) => {
-      const presetName = $(event.target).closest('.form-group').find('.tmfxPreset').val();
+    html.querySelector(".presetImport").on("click", (event) => {
+      const presetName = event.target
+        .closest(".form-group")
+        .find(".tmfxPreset")
+        .val();
       if (presetName) {
         const preset = TokenMagic.getPreset(presetName);
         if (preset) {
-          $(event.target)
-            .closest('.form-group')
-            .find('textarea')
+          event.target
+            .closest(".form-group")
+            .find("textarea")
             .val(JSON.stringify(preset, null, 2))
-            .trigger('change');
+            .trigger("change");
         }
       }
     });
@@ -178,49 +235,62 @@ export class OverlayConfig extends FormApplication {
 
     // Range inputs need to be triggered when slider moves to initiate preview
     html
-      .find('.range-value')
+      .find(".range-value")
       .siblings('[type="range"]')
-      .on('change', (event) => {
-        $(event.target).siblings('.range-value').val(event.target.value).trigger('change');
+      .on("change", (event) => {
+        event.target
+          .siblings(".range-value")
+          .val(event.target.value)
+          .trigger("change");
       });
 
-    const lockButtons = $(html).find('.scaleLock > a');
-    const sliderScaleWidth = $(html).find('[name="scaleX"]');
-    const sliderScaleHeight = $(html).find('[name="scaleY"]');
-    const sliderWidth = html.find('.scaleX');
-    const sliderHeight = html.find('.scaleY');
+    const lockButtons = html.find(".scaleLock > a");
+    const sliderScaleWidth = html.find('[name="scaleX"]');
+    const sliderScaleHeight = html.find('[name="scaleY"]');
+    const sliderWidth = html.querySelector(".scaleX");
+    const sliderHeight = html.querySelector(".scaleY");
 
-    lockButtons.on('click', function () {
+    lockButtons.on("click", function () {
       scaleState.locked = !scaleState.locked;
-      lockButtons.html(scaleState.locked ? '<i class="fas fa-link"></i>' : '<i class="fas fa-unlink"></i>');
+      lockButtons.html(
+        scaleState.locked
+          ? '<i class="fas fa-link"></i>'
+          : '<i class="fas fa-unlink"></i>',
+      );
     });
 
-    sliderScaleWidth.on('change', function () {
-      if (scaleState.locked && sliderScaleWidth.val() !== sliderScaleHeight.val()) {
-        sliderScaleHeight.val(sliderScaleWidth.val()).trigger('change');
+    sliderScaleWidth.on("change", function () {
+      if (
+        scaleState.locked &&
+        sliderScaleWidth.val() !== sliderScaleHeight.val()
+      ) {
+        sliderScaleHeight.val(sliderScaleWidth.val()).trigger("change");
         sliderHeight.val(sliderScaleWidth.val());
       }
     });
-    sliderScaleHeight.on('change', function () {
-      if (scaleState.locked && sliderScaleWidth.val() !== sliderScaleHeight.val()) {
-        sliderScaleWidth.val(sliderScaleHeight.val()).trigger('change');
+    sliderScaleHeight.on("change", function () {
+      if (
+        scaleState.locked &&
+        sliderScaleWidth.val() !== sliderScaleHeight.val()
+      ) {
+        sliderScaleWidth.val(sliderScaleHeight.val()).trigger("change");
         sliderWidth.val(sliderScaleHeight.val());
       }
     });
-    html.on('change', '.scaleX', () => {
-      sliderScaleWidth.trigger('change');
+    html.on("change", ".scaleX", () => {
+      sliderScaleWidth.trigger("change");
     });
-    html.on('change', '.scaleY', () => {
-      sliderScaleHeight.trigger('change');
+    html.on("change", ".scaleY", () => {
+      sliderScaleHeight.trigger("change");
     });
 
-    html.find('.me-edit-json').on('click', async (event) => {
-      const textarea = $(event.target).closest('.form-group').find('textarea');
+    html.querySelector(".me-edit-json").on("click", async (event) => {
+      const textarea = event.target.closest(".form-group").find("textarea");
       let params;
       try {
         params = eval(textarea.val());
       } catch (e) {
-        console.warn('TVA |', e);
+        console.warn("TVA |", e);
       }
 
       if (params) {
@@ -237,80 +307,88 @@ export class OverlayConfig extends FormApplication {
         }
 
         if (param)
-          game.modules.get('multi-token-edit').api.showGenericForm(param, param.filterType ?? 'TMFX', {
-            inputChangeCallback: (selected) => {
-              foundry.utils.mergeObject(param, selected, { inplace: true });
-              textarea.val(JSON.stringify(params, null, 2)).trigger('change');
-            },
-          });
+          game.modules
+            .get("multi-token-edit")
+            .api.showGenericForm(param, param.filterType ?? "TMFX", {
+              inputChangeCallback: (selected) => {
+                foundry.utils.mergeObject(param, selected, { inplace: true });
+                textarea.val(JSON.stringify(params, null, 2)).trigger("change");
+              },
+            });
       }
     });
 
-    const underlay = html.find('[name="underlay"]');
-    const top = html.find('[name="top"]');
-    const bottom = html.find('[name="bottom"]');
+    const underlay = html.querySelector('[name="underlay"]');
+    const top = html.querySelector('[name="top"]');
+    const bottom = html.querySelector('[name="bottom"]');
     underlay.change(function () {
-      if (this.checked) top.prop('checked', false);
-      else bottom.prop('checked', false);
+      if (this.checked) top.prop("checked", false);
+      else bottom.prop("checked", false);
     });
     top.change(function () {
       if (this.checked) {
-        underlay.prop('checked', false);
-        bottom.prop('checked', false);
+        underlay.prop("checked", false);
+        bottom.prop("checked", false);
       }
     });
     bottom.change(function () {
       if (this.checked) {
-        underlay.prop('checked', true);
-        top.prop('checked', false);
+        underlay.prop("checked", true);
+        top.prop("checked", false);
       }
     });
 
-    const linkScale = html.find('[name="linkScale"]');
-    const linkDimensions = html.find('[name="linkDimensionsX"], [name="linkDimensionsY"]');
-    const linkStageScale = html.find('[name="linkStageScale"]');
+    const linkScale = html.querySelector('[name="linkScale"]');
+    const linkDimensions = html.querySelector(
+      '[name="linkDimensionsX"], [name="linkDimensionsY"]',
+    );
+    const linkStageScale = html.querySelector('[name="linkStageScale"]');
     linkScale.change(function () {
       if (this.checked) {
-        linkDimensions.prop('checked', false);
-        linkStageScale.prop('checked', false);
+        linkDimensions.prop("checked", false);
+        linkStageScale.prop("checked", false);
       }
     });
     linkDimensions.change(function () {
       if (this.checked) {
-        linkScale.prop('checked', false);
-        linkStageScale.prop('checked', false);
+        linkScale.prop("checked", false);
+        linkStageScale.prop("checked", false);
       }
     });
     linkStageScale.change(function () {
       if (this.checked) {
-        linkScale.prop('checked', false);
-        linkDimensions.prop('checked', false);
+        linkScale.prop("checked", false);
+        linkDimensions.prop("checked", false);
       }
     });
 
     // Setting border color for property expression
-    const limitOnProperty = html.find('[name="limitOnProperty"]');
-    limitOnProperty.on('input', (event) => {
-      const input = $(event.target);
-      if (input.val() === '') {
-        input.removeClass('tvaValid');
-        input.removeClass('tvaInvalid');
+    const limitOnProperty = html.querySelector('[name="limitOnProperty"]');
+    limitOnProperty.on("input", (event) => {
+      const input = event.target;
+      if (input.val() === "") {
+        input.removeClass("tvaValid");
+        input.removeClass("tvaInvalid");
       } else if (input.val().match(VALID_EXPRESSION)) {
-        input.addClass('tvaValid');
-        input.removeClass('tvaInvalid');
+        input.addClass("tvaValid");
+        input.removeClass("tvaInvalid");
       } else {
-        input.addClass('tvaInvalid');
-        input.removeClass('tvaValid');
+        input.addClass("tvaInvalid");
+        input.removeClass("tvaValid");
       }
     });
-    limitOnProperty.trigger('input');
+    limitOnProperty.trigger("input");
 
-    html.find('.create-variable').on('click', this._onCreateVariable.bind(this));
-    html.find('.delete-variable').on('click', this._onDeleteVariable.bind(this));
+    html
+      .querySelector(".create-variable")
+      .on("click", this._onCreateVariable.bind(this));
+    html
+      .querySelector(".delete-variable")
+      .on("click", this._onDeleteVariable.bind(this));
   }
 
   _onDeleteVariable(event) {
-    let index = $(event.target).closest('tr').data('index');
+    let index = event.target.closest("tr").data("index");
     if (index != null) {
       this.config = this._getSubmitData();
       if (!this.config.variables) this.config.variables = [];
@@ -322,14 +400,16 @@ export class OverlayConfig extends FormApplication {
   _onCreateVariable(event) {
     this.config = this._getSubmitData();
     if (!this.config.variables) this.config.variables = [];
-    this.config.variables.push({ name: '', value: '' });
+    this.config.variables.push({ name: "", value: "" });
     this.render(true);
   }
 
   _onAddShape(event) {
-    let shape = $(event.target).siblings('select').val();
+    let shape = event.target.siblings("select").val();
     shape = foundry.utils.deepClone(OVERLAY_SHAPES[shape]);
-    shape = foundry.utils.mergeObject(foundry.utils.deepClone(CORE_SHAPE), { shape });
+    shape = foundry.utils.mergeObject(foundry.utils.deepClone(CORE_SHAPE), {
+      shape,
+    });
 
     this.config = this._getSubmitData();
 
@@ -343,24 +423,26 @@ export class OverlayConfig extends FormApplication {
     this.config = this._getSubmitData();
     if (!this.config.img) this.config.img = [];
     else if (!(this.config.img instanceof Array)) {
-      this.config.img = [{ src: this.config.img, linked: this.config.imgLinked }];
+      this.config.img = [
+        { src: this.config.img, linked: this.config.imgLinked },
+      ];
     }
-    this.config.img.push({ src: '', linked: false });
+    this.config.img.push({ src: "", linked: false });
     this.render(true);
   }
 
   _onAddEvent(event) {
-    let listener = $(event.target).siblings('select').val();
+    let listener = event.target.siblings("select").val();
 
     this.config = this._getSubmitData();
     if (!this.config.interactivity) this.config.interactivity = [];
-    this.config.interactivity.push({ listener, macro: '', script: '' });
+    this.config.interactivity.push({ listener, macro: "", script: "" });
 
     this.render(true);
   }
 
   _onDeleteShape(event) {
-    const index = $(event.target).closest('.deleteShape').data('index');
+    const index = event.target.closest(".deleteShape").data("index");
     if (index == null) return;
 
     this.config = this._getSubmitData();
@@ -371,20 +453,20 @@ export class OverlayConfig extends FormApplication {
   }
 
   _onDeleteImage(event) {
-    const index = $(event.target).closest('.deleteImage').data('index');
+    const index = event.target.closest(".deleteImage").data("index");
     if (index == null) return;
 
     this.config = this._getSubmitData();
     if (!(this.config.img instanceof Array)) this.config.img = [];
     else this.config.img.splice(index, 1);
 
-    if (!this.config.img.length) this.config.img = '';
+    if (!this.config.img.length) this.config.img = "";
 
     this.render(true);
   }
 
   _onDeleteEvent(event) {
-    const index = $(event.target).closest('.deleteEvent').data('index');
+    const index = event.target.closest(".deleteEvent").data("index");
     if (index == null) return;
 
     this.config = this._getSubmitData();
@@ -395,14 +477,14 @@ export class OverlayConfig extends FormApplication {
   }
 
   _onCloneShape(event) {
-    const index = $(event.target).closest('.cloneShape').data('index');
+    const index = event.target.closest(".cloneShape").data("index");
     if (!index && index != 0) return;
 
     this.config = this._getSubmitData();
     if (!this.config.shapes) return;
     const nShape = foundry.utils.deepClone(this.config.shapes[index]);
     if (nShape.label) {
-      nShape.label = nShape.label + ' - Copy';
+      nShape.label = nShape.label + " - Copy";
     }
     this.config.shapes.push(nShape);
 
@@ -410,7 +492,7 @@ export class OverlayConfig extends FormApplication {
   }
 
   _onMoveShapeUp(event) {
-    const index = $(event.target).closest('.moveShapeUp').data('index');
+    const index = event.target.closest(".moveShapeUp").data("index");
     if (!index) return;
 
     this.config = this._getSubmitData();
@@ -421,7 +503,7 @@ export class OverlayConfig extends FormApplication {
   }
 
   _onMoveShapeDown(event) {
-    const index = $(event.target).closest('.moveShapeDown').data('index');
+    const index = event.target.closest(".moveShapeDown").data("index");
     if (!index && index != 0) return;
 
     this.config = this._getSubmitData();
@@ -448,9 +530,9 @@ export class OverlayConfig extends FormApplication {
 
   async _onInputChange(event) {
     this.previewConfig = this._getSubmitData();
-    if (event.target.type === 'color') {
-      const color = $(event.target).siblings('.color');
-      color.val(event.target.value).trigger('change');
+    if (event.target.type === "color") {
+      const color = event.target.siblings(".color");
+      color.val(event.target.value).trigger("change");
       return;
     }
     this._applyPreviews();
@@ -468,7 +550,9 @@ export class OverlayConfig extends FormApplication {
             // a token/actor specific mapping which may override the global one
             if (this.token) {
               previewIcons.push({ token: tkn, icon: c });
-            } else if (!getFlagMappings(tkn).find((m) => m.id === this.config.id)) {
+            } else if (
+              !getFlagMappings(tkn).find((m) => m.id === this.config.id)
+            ) {
               previewIcons.push({ token: tkn, icon: c });
             }
           }
@@ -481,9 +565,13 @@ export class OverlayConfig extends FormApplication {
   async _applyPreviews() {
     const targets = this.getPreviewIcons();
     for (const target of targets) {
-      const preview = evaluateOverlayExpressions(foundry.utils.deepClone(this.previewConfig), target.token, {
-        overlayConfig: this.previewConfig,
-      });
+      const preview = evaluateOverlayExpressions(
+        foundry.utils.deepClone(this.previewConfig),
+        target.token,
+        {
+          overlayConfig: this.previewConfig,
+        },
+      );
       target.icon.refresh(preview, {
         preview: true,
         previewTexture: await genTexture(target.token, preview),
@@ -502,26 +590,35 @@ export class OverlayConfig extends FormApplication {
   async getData(options) {
     const data = super.getData(options);
     data.filters = Object.keys(PIXI.filters);
-    data.filters.push('OutlineOverlayFilter');
+    data.filters.push("OutlineOverlayFilter");
     data.filters.sort();
-    data.tmfxActive = game.modules.get('tokenmagic')?.active;
+    data.tmfxActive = game.modules.get("tokenmagic")?.active;
     if (data.tmfxActive) {
       data.tmfxPresets = TokenMagic.getPresets().map((p) => p.name);
-      data.filters.unshift('Token Magic FX');
+      data.filters.unshift("Token Magic FX");
     }
-    data.filters.unshift('NONE');
-    const settings = foundry.utils.mergeObject(DEFAULT_OVERLAY_CONFIG, this.config, {
-      inplace: false,
-    });
+    data.filters.unshift("NONE");
+    const settings = foundry.utils.mergeObject(
+      DEFAULT_OVERLAY_CONFIG,
+      this.config,
+      {
+        inplace: false,
+      },
+    );
 
-    data.ceActive = game.modules.get('dfreds-convenient-effects')?.active;
+    data.ceActive = game.modules.get("dfreds-convenient-effects")?.active;
     if (data.ceActive) {
-      data.ceEffects = game.dfreds.effectInterface.findEffects().map((ef) => ef.name);
+      data.ceEffects = game.dfreds.effectInterface
+        .findEffects()
+        .map((ef) => ef.name);
     }
     data.macros = game.macros.map((m) => m.name);
 
-    if (settings.filter !== 'NONE') {
-      const filterOptions = genFilterOptionControls(settings.filter, settings.filterOptions);
+    if (settings.filter !== "NONE") {
+      const filterOptions = genFilterOptionControls(
+        settings.filter,
+        settings.filterOptions,
+      );
       if (filterOptions) {
         settings.filterOptions = filterOptions;
       } else {
@@ -532,54 +629,68 @@ export class OverlayConfig extends FormApplication {
     }
 
     data.users = game.users.map((u) => {
-      return { id: u.id, name: u.name, selected: settings.limitedUsers.includes(u.id) };
+      return {
+        id: u.id,
+        name: u.name,
+        selected: settings.limitedUsers.includes(u.id),
+      };
     });
 
-    data.fonts = Object.keys(CONFIG.fontDefinitions).concat(Object.keys(game.settings.get('core', FontConfig.SETTING)));
+    data.fonts = Object.keys(CONFIG.fontDefinitions).concat(
+      Object.keys(game.settings.get("core", FontConfig.SETTING)),
+    );
     data.fontWeights = [
-      'normal',
-      'bold',
-      'bolder',
-      'lighter',
-      '100',
-      '200',
-      '300',
-      '400',
-      '500',
-      '600',
-      '700',
-      '800',
-      '900',
+      "normal",
+      "bold",
+      "bolder",
+      "lighter",
+      "100",
+      "200",
+      "300",
+      "400",
+      "500",
+      "600",
+      "700",
+      "800",
+      "900",
     ];
 
-    const allMappings = getAllEffectMappings(this.token, true).filter((m) => m.id !== this.config.id);
+    const allMappings = getAllEffectMappings(this.token, true).filter(
+      (m) => m.id !== this.config.id,
+    );
     const [_, groupedMappings] = sortMappingsToGroups(allMappings);
 
     data.parents = groupedMappings;
-    if (!data.parentID) data.parentID = 'TOKEN';
+    if (!data.parentID) data.parentID = "TOKEN";
     if (!data.anchor) data.anchor = { x: 0.5, y: 0.5 };
 
     // Cache Partials
     for (const shapeName of Object.keys(OVERLAY_SHAPES)) {
-      await getTemplate(`modules/token-variants/templates/partials/shape${shapeName}.html`);
+      await getTemplate(
+        `modules/token-variants/token-variants/templates/partials/shape${shapeName}.html`,
+      );
     }
-    await getTemplate('modules/token-variants/templates/partials/repeating.html');
-    await getTemplate('modules/token-variants/templates/partials/interpolateColor.html');
+    await getTemplate(
+      "modules/token-variants/token-variants/templates/partials/repeating.html",
+    );
+    await getTemplate(
+      "modules/token-variants/token-variants/templates/partials/interpolateColor.html",
+    );
 
     data.allShapes = Object.keys(OVERLAY_SHAPES);
     data.textAlignmentOptions = [
-      { value: 'left', label: 'Left' },
-      { value: 'center', label: 'Center' },
-      { value: 'right', label: 'Right' },
-      { value: 'justify', label: 'Justify' },
+      { value: "left", label: "Left" },
+      { value: "center", label: "Center" },
+      { value: "right", label: "Right" },
+      { value: "justify", label: "Justify" },
     ];
 
-    data.vision5e = game.modules.get('vision-5e')?.active;
+    data.vision5e = game.modules.get("vision-5e")?.active;
 
     // linkDimensions has been converted to linkDimensionsX and linkDimensionsY
     // Make sure we're using the latest fields
     // 20/07/2023
-    if (!('linkDimensionsX' in settings) && settings.linkDimensions) {
+    if (!("linkDimensionsX" in settings) && settings.linkDimensions) {
       settings.linkDimensionsX = true;
       settings.linkDimensionsY = true;
     }
@@ -590,9 +701,9 @@ export class OverlayConfig extends FormApplication {
   _getHeaderButtons() {
     const buttons = super._getHeaderButtons();
     buttons.unshift({
-      label: 'Core Variables',
-      class: '.core-variables',
-      icon: 'fas fa-file-import fa-fw',
+      label: "Core Variables",
+      class: ".core-variables",
+      icon: "fas fa-file-import fa-fw",
       onclick: () => {
         let content = `
         <table>
@@ -658,10 +769,13 @@ export class OverlayConfig extends FormApplication {
 
     if (formData.variables) {
       formData.variables = Object.values(formData.variables);
-      formData.variables = formData.variables.filter((v) => v.name.trim() && v.value.trim());
+      formData.variables = formData.variables.filter(
+        (v) => v.name.trim() && v.value.trim(),
+      );
     }
     if (formData.limitedUsers) {
-      if (foundry.utils.getType(formData.limitedUsers) === 'string') formData.limitedUsers = [formData.limitedUsers];
+      if (foundry.utils.getType(formData.limitedUsers) === "string")
+        formData.limitedUsers = [formData.limitedUsers];
       formData.limitedUsers = formData.limitedUsers.filter((uid) => uid);
     } else {
       formData.limitedUsers = [];
@@ -669,18 +783,36 @@ export class OverlayConfig extends FormApplication {
 
     formData.limitOnEffect = formData.limitOnEffect.trim();
     formData.limitOnProperty = formData.limitOnProperty.trim();
-    if (formData.parentID === 'TOKEN') formData.parentID = '';
+    if (formData.parentID === "TOKEN") formData.parentID = "";
 
-    if (formData.filter === 'OutlineOverlayFilter' && formData.filterOptions?.outlineColor) {
-      formData.filterOptions.outlineColor = this._convertColor(formData.filterOptions.outlineColor);
-    } else if (formData.filter === 'BevelFilter') {
+    if (
+      formData.filter === "OutlineOverlayFilter" &&
+      formData.filterOptions?.outlineColor
+    ) {
+      formData.filterOptions.outlineColor = this._convertColor(
+        formData.filterOptions.outlineColor,
+      );
+    } else if (formData.filter === "BevelFilter") {
       if (formData.filterOptions?.lightColor)
-        formData.filterOptions.lightColor = Number(Color.fromString(formData.filterOptions.lightColor));
+        formData.filterOptions.lightColor = Number(
+          Color.fromString(formData.filterOptions.lightColor),
+        );
       if (formData.filterOptions?.shadowColor)
-        formData.filterOptions.shadowColor = Number(Color.fromString(formData.filterOptions.shadowColor));
-    } else if (['DropShadowFilter', 'GlowFilter', 'OutlineFilter', 'FilterFire'].includes(formData.filter)) {
+        formData.filterOptions.shadowColor = Number(
+          Color.fromString(formData.filterOptions.shadowColor),
+        );
+    } else if (
+      [
+        "DropShadowFilter",
+        "GlowFilter",
+        "OutlineFilter",
+        "FilterFire",
+      ].includes(formData.filter)
+    ) {
       if (formData.filterOptions?.color)
-        formData.filterOptions.color = Number(Color.fromString(formData.filterOptions.color));
+        formData.filterOptions.color = Number(
+          Color.fromString(formData.filterOptions.color),
+        );
     }
 
     return formData;
@@ -704,24 +836,24 @@ export const FILTERS = {
     },
     controls: [
       {
-        type: 'color',
-        name: 'outlineColor',
+        type: "color",
+        name: "outlineColor",
       },
       {
-        type: 'range',
-        label: 'Thickness',
-        name: 'trueThickness',
+        type: "range",
+        label: "Thickness",
+        name: "trueThickness",
         min: 0,
         max: 5,
         step: 0.01,
       },
       {
-        type: 'boolean',
-        label: 'Oscillate',
-        name: 'animate',
+        type: "boolean",
+        label: "Oscillate",
+        name: "animate",
       },
     ],
-    argType: 'args',
+    argType: "args",
   },
   AlphaFilter: {
     defaultValues: {
@@ -729,14 +861,14 @@ export const FILTERS = {
     },
     controls: [
       {
-        type: 'range',
-        name: 'alpha',
+        type: "range",
+        name: "alpha",
         min: 0,
         max: 1,
         step: 0.01,
       },
     ],
-    argType: 'args',
+    argType: "args",
   },
   BlurFilter: {
     defaultValues: {
@@ -744,10 +876,10 @@ export const FILTERS = {
       quality: 4,
     },
     controls: [
-      { type: 'range', name: 'strength', min: 0, max: 20, step: 1 },
-      { type: 'range', name: 'quality', min: 0, max: 20, step: 1 },
+      { type: "range", name: "strength", min: 0, max: 20, step: 1 },
+      { type: "range", name: "quality", min: 0, max: 20, step: 1 },
     ],
-    argType: 'args',
+    argType: "args",
   },
   BlurFilterPass: {
     defaultValues: {
@@ -757,13 +889,13 @@ export const FILTERS = {
     },
     controls: [
       {
-        type: 'boolean',
-        name: 'horizontal',
+        type: "boolean",
+        name: "horizontal",
       },
-      { type: 'range', name: 'strength', min: 0, max: 20, step: 1 },
-      { type: 'range', name: 'quality', min: 0, max: 20, step: 1 },
+      { type: "range", name: "strength", min: 0, max: 20, step: 1 },
+      { type: "range", name: "quality", min: 0, max: 20, step: 1 },
     ],
-    argType: 'args',
+    argType: "args",
   },
   NoiseFilter: {
     defaultValues: {
@@ -771,10 +903,10 @@ export const FILTERS = {
       seed: 4475160954091,
     },
     controls: [
-      { type: 'range', name: 'noise', min: 0, max: 1, step: 0.01 },
-      { type: 'range', name: 'seed', min: 0, max: 100000, step: 1 },
+      { type: "range", name: "noise", min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "seed", min: 0, max: 100000, step: 1 },
     ],
-    argType: 'args',
+    argType: "args",
   },
   AdjustmentFilter: {
     defaultValues: {
@@ -788,16 +920,16 @@ export const FILTERS = {
       alpha: 1,
     },
     controls: [
-      { type: 'range', name: 'gamma', min: 0, max: 1, step: 0.01 },
-      { type: 'range', name: 'saturation', min: 0, max: 1, step: 0.01 },
-      { type: 'range', name: 'contrast', min: 0, max: 1, step: 0.01 },
-      { type: 'range', name: 'brightness', min: 0, max: 1, step: 0.01 },
-      { type: 'range', name: 'red', min: 0, max: 1, step: 0.01 },
-      { type: 'range', name: 'green', min: 0, max: 1, step: 0.01 },
-      { type: 'range', name: 'blue', min: 0, max: 1, step: 0.01 },
-      { type: 'range', name: 'alpha', min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "gamma", min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "saturation", min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "contrast", min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "brightness", min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "red", min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "green", min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "blue", min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "alpha", min: 0, max: 1, step: 0.01 },
     ],
-    argType: 'options',
+    argType: "options",
   },
   AdvancedBloomFilter: {
     defaultValues: {
@@ -808,20 +940,20 @@ export const FILTERS = {
       quality: 4,
     },
     controls: [
-      { type: 'range', name: 'threshold', min: 0, max: 1, step: 0.01 },
-      { type: 'range', name: 'bloomScale', min: 0, max: 5, step: 0.01 },
-      { type: 'range', name: 'brightness', min: 0, max: 1, step: 0.01 },
-      { type: 'range', name: 'blur', min: 0, max: 20, step: 1 },
-      { type: 'range', name: 'quality', min: 0, max: 20, step: 1 },
+      { type: "range", name: "threshold", min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "bloomScale", min: 0, max: 5, step: 0.01 },
+      { type: "range", name: "brightness", min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "blur", min: 0, max: 20, step: 1 },
+      { type: "range", name: "quality", min: 0, max: 20, step: 1 },
     ],
-    argType: 'options',
+    argType: "options",
   },
   AsciiFilter: {
     defaultValues: {
       size: 8,
     },
-    controls: [{ type: 'range', name: 'size', min: 0, max: 20, step: 0.01 }],
-    argType: 'args',
+    controls: [{ type: "range", name: "size", min: 0, max: 20, step: 0.01 }],
+    argType: "args",
   },
   BevelFilter: {
     defaultValues: {
@@ -833,14 +965,14 @@ export const FILTERS = {
       shadowAlpha: 0.7,
     },
     controls: [
-      { type: 'range', name: 'rotation', min: 0, max: 360, step: 1 },
-      { type: 'range', name: 'thickness', min: 0, max: 20, step: 0.01 },
-      { type: 'color', name: 'lightColor' },
-      { type: 'range', name: 'lightAlpha', min: 0, max: 1, step: 0.01 },
-      { type: 'color', name: 'shadowColor' },
-      { type: 'range', name: 'shadowAlpha', min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "rotation", min: 0, max: 360, step: 1 },
+      { type: "range", name: "thickness", min: 0, max: 20, step: 0.01 },
+      { type: "color", name: "lightColor" },
+      { type: "range", name: "lightAlpha", min: 0, max: 1, step: 0.01 },
+      { type: "color", name: "shadowColor" },
+      { type: "range", name: "shadowAlpha", min: 0, max: 1, step: 0.01 },
     ],
-    argType: 'options',
+    argType: "options",
   },
   BloomFilter: {
     defaultValues: {
@@ -848,10 +980,10 @@ export const FILTERS = {
       quality: 4,
     },
     controls: [
-      { type: 'range', name: 'blur', min: 0, max: 20, step: 1 },
-      { type: 'range', name: 'quality', min: 0, max: 20, step: 1 },
+      { type: "range", name: "blur", min: 0, max: 20, step: 1 },
+      { type: "range", name: "quality", min: 0, max: 20, step: 1 },
     ],
-    argType: 'args',
+    argType: "args",
   },
   BulgePinchFilter: {
     defaultValues: {
@@ -859,10 +991,10 @@ export const FILTERS = {
       strength: 1,
     },
     controls: [
-      { type: 'range', name: 'radius', min: 0, max: 500, step: 1 },
-      { type: 'range', name: 'strength', min: -1, max: 1, step: 0.01 },
+      { type: "range", name: "radius", min: 0, max: 500, step: 1 },
+      { type: "range", name: "strength", min: -1, max: 1, step: 0.01 },
     ],
-    argType: 'options',
+    argType: "options",
   },
   CRTFilter: {
     defaultValues: {
@@ -879,19 +1011,19 @@ export const FILTERS = {
       time: 0,
     },
     controls: [
-      { type: 'range', name: 'curvature', min: 0, max: 20, step: 0.01 },
-      { type: 'range', name: 'lineWidth', min: 0, max: 20, step: 0.01 },
-      { type: 'range', name: 'lineContrast', min: 0, max: 5, step: 0.01 },
-      { type: 'boolean', name: 'verticalLine' },
-      { type: 'range', name: 'noise', min: 0, max: 2, step: 0.01 },
-      { type: 'range', name: 'noiseSize', min: 0, max: 20, step: 0.01 },
-      { type: 'range', name: 'seed', min: 0, max: 100000, step: 1 },
-      { type: 'range', name: 'vignetting', min: 0, max: 20, step: 0.01 },
-      { type: 'range', name: 'vignettingAlpha', min: 0, max: 1, step: 0.01 },
-      { type: 'range', name: 'vignettingBlur', min: 0, max: 5, step: 0.01 },
-      { type: 'range', name: 'time', min: 0, max: 10000, step: 1 },
+      { type: "range", name: "curvature", min: 0, max: 20, step: 0.01 },
+      { type: "range", name: "lineWidth", min: 0, max: 20, step: 0.01 },
+      { type: "range", name: "lineContrast", min: 0, max: 5, step: 0.01 },
+      { type: "boolean", name: "verticalLine" },
+      { type: "range", name: "noise", min: 0, max: 2, step: 0.01 },
+      { type: "range", name: "noiseSize", min: 0, max: 20, step: 0.01 },
+      { type: "range", name: "seed", min: 0, max: 100000, step: 1 },
+      { type: "range", name: "vignetting", min: 0, max: 20, step: 0.01 },
+      { type: "range", name: "vignettingAlpha", min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "vignettingBlur", min: 0, max: 5, step: 0.01 },
+      { type: "range", name: "time", min: 0, max: 10000, step: 1 },
     ],
-    argType: 'options',
+    argType: "options",
   },
   DotFilter: {
     defaultValues: {
@@ -899,10 +1031,10 @@ export const FILTERS = {
       angle: 5,
     },
     controls: [
-      { type: 'range', name: 'scale', min: 0, max: 50, step: 1 },
-      { type: 'range', name: 'angle', min: 0, max: 360, step: 0.1 },
+      { type: "range", name: "scale", min: 0, max: 50, step: 1 },
+      { type: "range", name: "angle", min: 0, max: 360, step: 0.1 },
     ],
-    argType: 'args',
+    argType: "args",
   },
   DropShadowFilter: {
     defaultValues: {
@@ -915,22 +1047,22 @@ export const FILTERS = {
       quality: 3,
     },
     controls: [
-      { type: 'range', name: 'rotation', min: 0, max: 360, step: 0.1 },
-      { type: 'range', name: 'distance', min: 0, max: 100, step: 0.1 },
-      { type: 'color', name: 'color' },
-      { type: 'range', name: 'alpha', min: 0, max: 1, step: 0.01 },
-      { type: 'boolean', name: 'shadowOnly' },
-      { type: 'range', name: 'blur', min: 0, max: 20, step: 0.1 },
-      { type: 'range', name: 'quality', min: 0, max: 20, step: 1 },
+      { type: "range", name: "rotation", min: 0, max: 360, step: 0.1 },
+      { type: "range", name: "distance", min: 0, max: 100, step: 0.1 },
+      { type: "color", name: "color" },
+      { type: "range", name: "alpha", min: 0, max: 1, step: 0.01 },
+      { type: "boolean", name: "shadowOnly" },
+      { type: "range", name: "blur", min: 0, max: 20, step: 0.1 },
+      { type: "range", name: "quality", min: 0, max: 20, step: 1 },
     ],
-    argType: 'options',
+    argType: "options",
   },
   EmbossFilter: {
     defaultValues: {
       strength: 5,
     },
-    controls: [{ type: 'range', name: 'strength', min: 0, max: 20, step: 1 }],
-    argType: 'args',
+    controls: [{ type: "range", name: "strength", min: 0, max: 20, step: 1 }],
+    argType: "args",
   },
   GlitchFilter: {
     defaultValues: {
@@ -944,26 +1076,26 @@ export const FILTERS = {
       sampleSize: 512,
     },
     controls: [
-      { type: 'range', name: 'slices', min: 0, max: 50, step: 1 },
-      { type: 'range', name: 'distance', min: 0, max: 1000, step: 1 },
-      { type: 'range', name: 'direction', min: 0, max: 360, step: 0.1 },
+      { type: "range", name: "slices", min: 0, max: 50, step: 1 },
+      { type: "range", name: "distance", min: 0, max: 1000, step: 1 },
+      { type: "range", name: "direction", min: 0, max: 360, step: 0.1 },
       {
-        type: 'select',
-        name: 'fillMode',
+        type: "select",
+        name: "fillMode",
         options: [
-          { value: 0, label: 'TRANSPARENT' },
-          { value: 1, label: 'ORIGINAL' },
-          { value: 2, label: 'LOOP' },
-          { value: 3, label: 'CLAMP' },
-          { value: 4, label: 'MIRROR' },
+          { value: 0, label: "TRANSPARENT" },
+          { value: 1, label: "ORIGINAL" },
+          { value: 2, label: "LOOP" },
+          { value: 3, label: "CLAMP" },
+          { value: 4, label: "MIRROR" },
         ],
       },
-      { type: 'range', name: 'seed', min: 0, max: 10000, step: 1 },
-      { type: 'boolean', name: 'average' },
-      { type: 'range', name: 'minSize', min: 0, max: 500, step: 1 },
-      { type: 'range', name: 'sampleSize', min: 0, max: 1024, step: 1 },
+      { type: "range", name: "seed", min: 0, max: 10000, step: 1 },
+      { type: "boolean", name: "average" },
+      { type: "range", name: "minSize", min: 0, max: 500, step: 1 },
+      { type: "range", name: "sampleSize", min: 0, max: 1024, step: 1 },
     ],
-    argType: 'options',
+    argType: "options",
   },
   GlowFilter: {
     defaultValues: {
@@ -975,14 +1107,14 @@ export const FILTERS = {
       knockout: false,
     },
     controls: [
-      { type: 'range', name: 'distance', min: 1, max: 50, step: 1 },
-      { type: 'range', name: 'outerStrength', min: 0, max: 20, step: 1 },
-      { type: 'range', name: 'innerStrength', min: 0, max: 20, step: 1 },
-      { type: 'color', name: 'color' },
-      { type: 'range', name: 'quality', min: 0, max: 5, step: 0.1 },
-      { type: 'boolean', name: 'knockout' },
+      { type: "range", name: "distance", min: 1, max: 50, step: 1 },
+      { type: "range", name: "outerStrength", min: 0, max: 20, step: 1 },
+      { type: "range", name: "innerStrength", min: 0, max: 20, step: 1 },
+      { type: "color", name: "color" },
+      { type: "range", name: "quality", min: 0, max: 5, step: 0.1 },
+      { type: "boolean", name: "knockout" },
     ],
-    argType: 'options',
+    argType: "options",
   },
   GodrayFilter: {
     defaultValues: {
@@ -994,14 +1126,14 @@ export const FILTERS = {
       alpha: 1.0,
     },
     controls: [
-      { type: 'range', name: 'angle', min: 0, max: 360, step: 0.1 },
-      { type: 'range', name: 'gain', min: 0, max: 5, step: 0.01 },
-      { type: 'range', name: 'lacunarity', min: 0, max: 5, step: 0.01 },
-      { type: 'boolean', name: 'parallel' },
-      { type: 'range', name: 'time', min: 0, max: 10000, step: 1 },
-      { type: 'range', name: 'alpha', min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "angle", min: 0, max: 360, step: 0.1 },
+      { type: "range", name: "gain", min: 0, max: 5, step: 0.01 },
+      { type: "range", name: "lacunarity", min: 0, max: 5, step: 0.01 },
+      { type: "boolean", name: "parallel" },
+      { type: "range", name: "time", min: 0, max: 10000, step: 1 },
+      { type: "range", name: "alpha", min: 0, max: 1, step: 0.01 },
     ],
-    argType: 'options',
+    argType: "options",
   },
   KawaseBlurFilter: {
     defaultValues: {
@@ -1010,11 +1142,11 @@ export const FILTERS = {
       clamp: false,
     },
     controls: [
-      { type: 'range', name: 'blur', min: 0, max: 20, step: 0.1 },
-      { type: 'range', name: 'quality', min: 0, max: 20, step: 1 },
-      { type: 'boolean', name: 'clamp' },
+      { type: "range", name: "blur", min: 0, max: 20, step: 0.1 },
+      { type: "range", name: "quality", min: 0, max: 20, step: 1 },
+      { type: "boolean", name: "clamp" },
     ],
-    argType: 'args',
+    argType: "args",
   },
   OldFilmFilter: {
     defaultValues: {
@@ -1029,17 +1161,17 @@ export const FILTERS = {
       vignettingBlur: 0.3,
     },
     controls: [
-      { type: 'range', name: 'sepia', min: 0, max: 1, step: 0.01 },
-      { type: 'range', name: 'noise', min: 0, max: 1, step: 0.01 },
-      { type: 'range', name: 'noiseSize', min: 0, max: 5, step: 0.01 },
-      { type: 'range', name: 'scratch', min: 0, max: 5, step: 0.01 },
-      { type: 'range', name: 'scratchDensity', min: 0, max: 5, step: 0.01 },
-      { type: 'range', name: 'scratchWidth', min: 0, max: 20, step: 0.01 },
-      { type: 'range', name: 'vignetting', min: 0, max: 1, step: 0.01 },
-      { type: 'range', name: 'vignettingAlpha', min: 0, max: 1, step: 0.01 },
-      { type: 'range', name: 'vignettingBlur', min: 0, max: 5, step: 0.01 },
+      { type: "range", name: "sepia", min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "noise", min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "noiseSize", min: 0, max: 5, step: 0.01 },
+      { type: "range", name: "scratch", min: 0, max: 5, step: 0.01 },
+      { type: "range", name: "scratchDensity", min: 0, max: 5, step: 0.01 },
+      { type: "range", name: "scratchWidth", min: 0, max: 20, step: 0.01 },
+      { type: "range", name: "vignetting", min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "vignettingAlpha", min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "vignettingBlur", min: 0, max: 5, step: 0.01 },
     ],
-    argType: 'options',
+    argType: "options",
   },
   OutlineFilter: {
     defaultValues: {
@@ -1048,18 +1180,18 @@ export const FILTERS = {
       quality: 0.1,
     },
     controls: [
-      { type: 'range', name: 'thickness', min: 0, max: 20, step: 0.1 },
-      { type: 'color', name: 'color' },
-      { type: 'range', name: 'quality', min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "thickness", min: 0, max: 20, step: 0.1 },
+      { type: "color", name: "color" },
+      { type: "range", name: "quality", min: 0, max: 1, step: 0.01 },
     ],
-    argType: 'args',
+    argType: "args",
   },
   PixelateFilter: {
     defaultValues: {
       size: 1,
     },
-    controls: [{ type: 'range', name: 'size', min: 1, max: 100, step: 1 }],
-    argType: 'args',
+    controls: [{ type: "range", name: "size", min: 1, max: 100, step: 1 }],
+    argType: "args",
   },
   RGBSplitFilter: {
     defaultValues: {
@@ -1068,11 +1200,11 @@ export const FILTERS = {
       blue: [0, 0],
     },
     controls: [
-      { type: 'point', name: 'red', min: 0, max: 50, step: 1 },
-      { type: 'point', name: 'green', min: 0, max: 50, step: 1 },
-      { type: 'point', name: 'blue', min: 0, max: 50, step: 1 },
+      { type: "point", name: "red", min: 0, max: 50, step: 1 },
+      { type: "point", name: "green", min: 0, max: 50, step: 1 },
+      { type: "point", name: "blue", min: 0, max: 50, step: 1 },
     ],
-    argType: 'args',
+    argType: "args",
   },
   RadialBlurFilter: {
     defaultValues: {
@@ -1081,11 +1213,11 @@ export const FILTERS = {
       radius: -1,
     },
     controls: [
-      { type: 'range', name: 'angle', min: 0, max: 360, step: 1 },
-      { type: 'point', name: 'center', min: 0, max: 1000, step: 1 },
-      { type: 'range', name: 'radius', min: -1, max: 1000, step: 1 },
+      { type: "range", name: "angle", min: 0, max: 360, step: 1 },
+      { type: "point", name: "center", min: 0, max: 1000, step: 1 },
+      { type: "range", name: "radius", min: -1, max: 1000, step: 1 },
     ],
-    argType: 'args',
+    argType: "args",
   },
   ReflectionFilter: {
     defaultValues: {
@@ -1097,35 +1229,35 @@ export const FILTERS = {
       time: 0,
     },
     controls: [
-      { type: 'boolean', name: 'mirror' },
-      { type: 'range', name: 'boundary', min: 0, max: 1, step: 0.01 },
-      { type: 'point', name: 'amplitude', min: 0, max: 100, step: 1 },
-      { type: 'point', name: 'waveLength', min: 0, max: 500, step: 1 },
-      { type: 'point', name: 'alpha', min: 0, max: 1, step: 0.01 },
-      { type: 'range', name: 'time', min: 0, max: 10000, step: 1 },
+      { type: "boolean", name: "mirror" },
+      { type: "range", name: "boundary", min: 0, max: 1, step: 0.01 },
+      { type: "point", name: "amplitude", min: 0, max: 100, step: 1 },
+      { type: "point", name: "waveLength", min: 0, max: 500, step: 1 },
+      { type: "point", name: "alpha", min: 0, max: 1, step: 0.01 },
+      { type: "range", name: "time", min: 0, max: 10000, step: 1 },
     ],
-    argType: 'options',
+    argType: "options",
   },
   DisplacementFilter: {
     defaultValues: {
-      sprite: '',
+      sprite: "",
       textureScale: 1,
       displacementScale: 1,
     },
     controls: [
-      { type: 'text', name: 'sprite' },
-      { type: 'range', name: 'textureScale', min: 0, max: 100, step: 0.1 },
-      { type: 'range', name: 'displacementScale', min: 0, max: 100, step: 0.1 },
+      { type: "text", name: "sprite" },
+      { type: "range", name: "textureScale", min: 0, max: 100, step: 0.1 },
+      { type: "range", name: "displacementScale", min: 0, max: 100, step: 0.1 },
     ],
-    argType: 'options',
+    argType: "options",
   },
-  'Token Magic FX': {
+  "Token Magic FX": {
     defaultValues: {
       params: [],
     },
     controls: [
-      { type: 'tmfxPreset', name: 'tmfxPreset' },
-      { type: 'json', name: 'params' },
+      { type: "tmfxPreset", name: "tmfxPreset" },
+      { type: "json", name: "params" },
     ],
   },
 };
@@ -1133,26 +1265,31 @@ export const FILTERS = {
 function genFilterOptionControls(filterName, filterOptions = {}) {
   if (!(filterName in FILTERS)) return;
 
-  const options = foundry.utils.mergeObject(FILTERS[filterName].defaultValues, filterOptions);
+  const options = foundry.utils.mergeObject(
+    FILTERS[filterName].defaultValues,
+    filterOptions,
+  );
   const values = getControlValues(filterName, options);
 
   const controls = FILTERS[filterName].controls;
-  let controlsHTML = '<fieldset><legend>Options</legend>';
+  let controlsHTML = "<fieldset><legend>Options</legend>";
   for (const control of controls) {
     controlsHTML += genControl(control, values);
   }
-  controlsHTML += '</fieldset>';
+  controlsHTML += "</fieldset>";
 
   return controlsHTML;
 }
 
 function getControlValues(filterName, options) {
-  if (filterName === 'OutlineOverlayFilter') {
+  if (filterName === "OutlineOverlayFilter") {
     options.outlineColor = Color.fromRGB(options.outlineColor).toString();
-  } else if (filterName === 'BevelFilter') {
+  } else if (filterName === "BevelFilter") {
     options.lightColor = Color.from(options.lightColor).toString();
     options.shadowColor = Color.from(options.shadowColor).toString();
-  } else if (['DropShadowFilter', 'GlowFilter', 'OutlineFilter'].includes(filterName)) {
+  } else if (
+    ["DropShadowFilter", "GlowFilter", "OutlineFilter"].includes(filterName)
+  ) {
     options.color = Color.from(options.color).toString();
   }
   return options;
@@ -1163,7 +1300,7 @@ function genControl(control, values) {
   const name = control.name;
   const label = control.label ?? name.charAt(0).toUpperCase() + name.slice(1);
   const type = control.type;
-  if (type === 'color') {
+  if (type === "color") {
     return `
 <div class="form-group">
   <label>${label}</label>
@@ -1173,7 +1310,7 @@ function genControl(control, values) {
   </div>
 </div>
 `;
-  } else if (type === 'range') {
+  } else if (type === "range") {
     return `
 <div class="form-group">
   <label>${label}</label>
@@ -1183,16 +1320,16 @@ function genControl(control, values) {
   </div>
 </div>
 `;
-  } else if (type === 'boolean') {
+  } else if (type === "boolean") {
     return `
 <div class="form-group">
   <label>${label}</label>
   <div class="form-fields">
-      <input type="checkbox" name="filterOptions.${name}" data-dtype="Boolean" value="${val}" ${val ? 'checked' : ''}>
+      <input type="checkbox" name="filterOptions.${name}" data-dtype="Boolean" value="${val}" ${val ? "checked" : ""}>
   </div>
 </div>
     `;
-  } else if (type === 'select') {
+  } else if (type === "select") {
     let select = `
     <div class="form-group">
     <label>${label}</label>
@@ -1201,13 +1338,13 @@ function genControl(control, values) {
 `;
 
     for (const opt of control.options) {
-      select += `<option value="${opt.value}" ${val === opt.value ? 'selected="selected"' : ''}>${opt.label}</option>`;
+      select += `<option value="${opt.value}" ${val === opt.value ? 'selected="selected"' : ""}>${opt.label}</option>`;
     }
 
     select += `</select></div></div>`;
 
     return select;
-  } else if (type === 'point') {
+  } else if (type === "point") {
     return `
 <div class="form-group">
   <label>${label}</label>
@@ -1221,14 +1358,14 @@ function genControl(control, values) {
   </div>
 </div>
 `;
-  } else if (type === 'json') {
+  } else if (type === "json") {
     let control = `
 <div class="form-group">
   <label>${label}</label>
   <div class="form-fields">
       <textarea style="width: 450px; height: 200px;" name="filterOptions.${name}">${val}</textarea>
   </div>`;
-    const massEdit = game.modules.get('multi-token-edit');
+    const massEdit = game.modules.get("multi-token-edit");
     if (massEdit?.active && massEdit.api.showGenericForm) {
       control += `
   <div style="text-align: right; color: orangered;">
@@ -1237,7 +1374,7 @@ function genControl(control, values) {
     }
     control += `</div>`;
     return control;
-  } else if (type === 'text') {
+  } else if (type === "text") {
     return `
 <div class="form-group">
   <label>${label}</label>
@@ -1246,7 +1383,7 @@ function genControl(control, values) {
   </div>
 </div>
 `;
-  } else if (type === 'tmfxPreset' && game.modules.get('tokenmagic')?.active) {
+  } else if (type === "tmfxPreset" && game.modules.get("tokenmagic")?.active) {
     return `
       <div class="form-group">
         <label>Preset <span class="units">(TMFX)</span></label>
@@ -1256,7 +1393,7 @@ function genControl(control, values) {
         </div>
       `;
   }
-  return '';
+  return "";
 }
 
 async function promptParamChoice(params) {
@@ -1273,8 +1410,8 @@ async function promptParamChoice(params) {
     }
 
     const dialog = new Dialog({
-      title: 'Select Filter To Edit',
-      content: '',
+      title: "Select Filter To Edit",
+      content: "",
       buttons,
       close: () => resolve(-1),
     });

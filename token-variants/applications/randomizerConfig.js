@@ -8,7 +8,7 @@ export default class RandomizerConfig extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: 'token-variants-token-flags',
       classes: ['sheet'],
-      template: 'modules/token-variants/templates/randomizerConfig.html',
+      template: 'modules/token-variants/token-variants/templates/randomizerConfig.html',
       resizable: true,
       minimizable: false,
       title: 'Randomizer',
@@ -33,11 +33,11 @@ export default class RandomizerConfig extends FormApplication {
    */
   activateListeners(html) {
     super.activateListeners(html);
-    html.find('.selectNameForgeModels').click(this._selectNameForgeModels.bind(this));
+    html.querySelector('.selectNameForgeModels').click(this._selectNameForgeModels.bind(this));
 
     // Can't have both tokenName and actorName checkboxes checked at the same time
-    const tokenName = html.find('input[name="randomizer.tokenName"]');
-    const actorName = html.find('input[name="randomizer.actorName"]');
+    const tokenName = html.querySelector('input[name="randomizer.tokenName"]');
+    const actorName = html.querySelector('input[name="randomizer.actorName"]');
     tokenName.change(() => {
       if (tokenName.is(':checked')) actorName.prop('checked', false);
     });
@@ -47,7 +47,7 @@ export default class RandomizerConfig extends FormApplication {
   }
 
   _selectNameForgeModels(event) {
-    const inputSelected = $(event.target).siblings('input');
+    const inputSelected = event.target.siblings('input');
     const selected = inputSelected.val().split(',');
     const genCheckbox = function (name, value) {
       return `
@@ -81,7 +81,7 @@ export default class RandomizerConfig extends FormApplication {
           label: `Select`,
           callback: async (html) => {
             const selectedModels = [];
-            html.find('input[type="checkbox"]').each(function () {
+            html.querySelector('input[type="checkbox"]').each(function () {
               if (this.checked) selectedModels.push(this.value);
             });
             inputSelected.val(selectedModels.join(','));

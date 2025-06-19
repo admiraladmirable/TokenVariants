@@ -2,32 +2,30 @@
   "id": "token-variants",
   "title": "Token Variant Art",
   "description": "Searches a customizable list of directories and displays art variants for tokens/actors through pop-ups and a new Token HUD button. Variants can be individually shared with players allowing them to switch out their token art on the fly.",
-  "version": "4.57.2",
+  "version": "5.1.6",
   "compatibility": {
-    "minimum": "11",
-    "verified": 11
+    "minimum": 12,
+    "verified": 13
   },
-  "download": "https://github.com/Aedif/TokenVariants/releases/download/4.57.2/token-variants.zip",
-  "url": "https://github.com/Aedif/TokenVariants",
-  "manifest": "https://raw.githubusercontent.com/Aedif/TokenVariants/master/token-variants/module.json",
-  "author": "Aedif",
+  "download": "https://github.com/admiraladmirable/TokenVariants/archive/refs/heads/master.zip",
+  "url": "https://github.com/admiraladmirable/TokenVariants",
+  "manifest": "https://raw.githubusercontent.com/admiraladmirable/TokenVariants/master/module.json",
   "authors": [
     {
-      "name": "Aedif",
+      "name": "admiraladmirable",
       "discord": "aedif"
     }
   ],
-  "bugs": "https://github.com/Aedif/TokenVariants/issues",
-  "allowBugReporter": true,
+  "bugs": "https://github.com/admiraladmirable/TokenVariants/issues",
   "socket": true,
-  "esmodules": ["bundle.js"],
+  "esmodules": ["token-variants/bundle.js"],
   "scripts": [],
-  "styles": ["styles/tva-styles.css"],
+  "styles": ["token-variants/styles/tva-styles.css"],
   "languages": [
     {
       "lang": "en",
       "name": "English",
-      "path": "lang/en.json"
+      "path": "token-variants/lang/en.json"
     }
   ],
   "relationships": {
@@ -39,3 +37,4 @@
     ]
   }
 }
+

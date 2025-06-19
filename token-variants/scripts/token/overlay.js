@@ -142,7 +142,7 @@ export async function genTexture(token, conf) {
     return { html: true, texture: await loadTexture('modules\\token-variants\\img\\html_bg.webp') };
   } else {
     return {
-      texture: await loadTexture('modules/token-variants/img/token-images.svg'),
+      texture: await loadTexture('modules/token-variants/token-variants/img/token-images.svg'),
     };
   }
 }
@@ -157,7 +157,7 @@ async function generateImage(token, conf) {
   }
 
   let texture = await loadTexture(img, {
-    fallback: 'modules/token-variants/img/token-images.svg',
+    fallback: 'modules/token-variants/token-variants/img/token-images.svg',
   });
 
   // Repeat image if needed

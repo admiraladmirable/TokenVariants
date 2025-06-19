@@ -23,7 +23,7 @@ export function showOverlayJsonConfigDialog(overlayConfig, callback) {
         icon: "<i class='fas fa-save'></i>",
         label: 'Save',
         callback: (html) => {
-          let json = $(html).find('.configJson').val();
+          let json = html.find('.configJson').val();
           if (json) {
             try {
               json = JSON.parse(json);
@@ -45,7 +45,7 @@ export function showOverlayJsonConfigDialog(overlayConfig, callback) {
 // Change categories assigned to a path
 export async function showPathSelectCategoryDialog(event) {
   event.preventDefault();
-  const typesInput = $(event.target).closest('.path-category').find('input');
+  const typesInput = event.target.closest('.path-category').find('input');
   const selectedTypes = typesInput.val().split(',');
 
   const categories = BASE_IMAGE_CATEGORIES.concat(TVA_CONFIG.customImageCategories);
@@ -88,11 +88,11 @@ export async function showPathSelectCategoryDialog(event) {
         label: 'Apply',
         callback: (html) => {
           const types = [];
-          $(html)
+          html
             .find('.category')
             .each(function () {
-              if ($(this).is(':checked')) {
-                types.push($(this).attr('name'));
+              if (this.is(':checked')) {
+                types.push(this.attr('name'));
               }
             });
           typesInput.val(types.join(','));
@@ -106,7 +106,7 @@ export async function showPathSelectCategoryDialog(event) {
 // Change configs assigned to a path
 export async function showPathSelectConfigForm(event) {
   event.preventDefault();
-  const configInput = $(event.target).closest('.path-config').find('input');
+  const configInput = event.target.closest('.path-config').find('input');
   let config = {};
   try {
     config = JSON.parse(configInput.val());
@@ -177,7 +177,7 @@ export async function showTokenCaptureDialog(token) {
         label: 'Save',
         callback: (html) => {
           const options = {};
-          $(html)
+          html
             .find('[name]')
             .each(function () {
               let val = parseFloat(this.value);
@@ -189,12 +189,12 @@ export async function showTokenCaptureDialog(token) {
       },
     },
     render: (html) => {
-      html.find('.file-picker').click(() => {
+      html.querySelector('.file-picker').click(() => {
         new FilePicker({
           type: 'folder',
-          current: html.find('[name="path"]').val(),
+          current: html.querySelector('[name="path"]').val(),
           callback: (path) => {
-            html.find('[name="path"]').val(path);
+            html.querySelector('[name="path"]').val(path);
           },
         }).render();
       });
@@ -239,7 +239,7 @@ export function showMappingSelectDialog(
         callback: async (html) => {
           if (!callback) return;
           const selectedMappings = [];
-          html.find('input[type="checkbox"]').each(function () {
+          html.querySelector('input[type="checkbox"]').each(function () {
             if (this.checked) {
               const mapping = mappings.find((m) => m.id === this.name);
               if (mapping) {
@@ -255,8 +255,8 @@ export function showMappingSelectDialog(
     },
     close: () => callback(null),
     render: (html) => {
-      html.find('.select-all').click(() => {
-        html.find('input[type="checkbox"]').prop('checked', true);
+      html.querySelector('.select-all').click(() => {
+        html.querySelector('input[type="checkbox"]').prop('checked', true);
       });
     },
   }).render(true);
@@ -291,9 +291,9 @@ export function showUserTemplateCreateDialog(mappings) {
       create: {
         label: 'Create Template',
         callback: (html) => {
-          const name = html.find('[name="templateName"]').val().trim();
-          const hint = html.find('[name="templateHint"]').val().trim();
-          const img = html.find('[name="img"]').val().trim();
+          const name = html.querySelector('[name="templateName"]').val().trim();
+          const hint = html.querySelector('[name="templateHint"]').val().trim();
+          const img = html.querySelector('[name="img"]').val().trim();
           if (name.trim()) {
             TVA_CONFIG.templateMappings.push({
               id: foundry.utils.randomID(),

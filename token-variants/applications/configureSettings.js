@@ -1,8 +1,11 @@
-import { cacheImages } from '../scripts/search.js';
-import { TVA_CONFIG, updateSettings } from '../scripts/settings.js';
-import { getFileName } from '../scripts/utils.js';
-import EffectMappingForm from './effectMappingForm.js';
-import { showPathSelectCategoryDialog, showPathSelectConfigForm } from './dialogs.js';
+import { cacheImages } from "../scripts/search.js";
+import { TVA_CONFIG, updateSettings } from "../scripts/settings.js";
+import { getFileName } from "../scripts/utils.js";
+import EffectMappingForm from "./effectMappingForm.js";
+import {
+  showPathSelectCategoryDialog,
+  showPathSelectConfigForm,
+} from "./dialogs.js";
 
 export default class ConfigureSettings extends FormApplication {
   constructor(
@@ -18,7 +21,7 @@ export default class ConfigureSettings extends FormApplication {
       misc = true,
       activeEffects = true,
       features = false,
-    } = {}
+    } = {},
   ) {
     super({}, {});
     this.enabledTabs = {
@@ -35,22 +38,31 @@ export default class ConfigureSettings extends FormApplication {
     };
     this.settings = foundry.utils.deepClone(TVA_CONFIG);
     if (dummySettings) {
-      this.settings = foundry.utils.mergeObject(this.settings, dummySettings, { insertKeys: false });
+      this.settings = foundry.utils.mergeObject(this.settings, dummySettings, {
+        insertKeys: false,
+      });
       this.dummySettings = dummySettings;
     }
   }
 
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'token-variants-configure-settings',
-      classes: ['sheet'],
-      template: 'modules/token-variants/templates/configureSettings.html',
+      id: "token-variants-configure-settings",
+      classes: ["sheet"],
+      template:
+        "modules/token-variants/token-variants/templates/configureSettings.html",
       resizable: false,
       minimizable: false,
-      title: 'Configure Settings',
+      title: "Configure Settings",
       width: 700,
-      height: 'auto',
-      tabs: [{ navSelector: '.sheet-tabs', contentSelector: '.content', initial: 'searchPaths' }],
+      height: "auto",
+      tabs: [
+        {
+          navSelector: ".sheet-tabs",
+          contentSelector: ".content",
+          initial: "searchPaths",
+        },
+      ],
     });
   }
 
@@ -64,10 +76,10 @@ export default class ConfigureSettings extends FormApplication {
     const paths = settings.searchPaths.map((path) => {
       const r = {};
       r.text = path.text;
-      r.icon = this._pathIcon(path.source || '');
+      r.icon = this._pathIcon(path.source || "");
       r.cache = path.cache;
-      r.source = path.source || '';
-      r.types = path.types.join(',');
+      r.source = path.source || "";
+      r.types = path.types.join(",");
       r.config = JSON.stringify(path.config ?? {});
       r.hasConfig = path.config && !foundry.utils.isEmpty(path.config);
       return r;
@@ -98,7 +110,9 @@ export default class ConfigureSettings extends FormApplication {
     }, {});
 
     data.randomizer.tokenToPortraitDisabled =
-      !(settings.randomizer.tokenCreate || settings.randomizer.tokenCopyPaste) || data.randomizer.diffImages;
+      !(
+        settings.randomizer.tokenCreate || settings.randomizer.tokenCopyPaste
+      ) || data.randomizer.diffImages;
 
     // === Pop-up ===
     data.popup = foundry.utils.deepClone(settings.popup);
@@ -133,7 +147,8 @@ export default class ConfigureSettings extends FormApplication {
 
     // === Token HUD ===
     data.worldHud = foundry.utils.deepClone(settings.worldHud);
-    data.worldHud.tokenHUDWildcardActive = game.modules.get('token-hud-wildcard')?.active;
+    data.worldHud.tokenHUDWildcardActive =
+      game.modules.get("token-hud-wildcard")?.active;
 
     // === Internal Effects ===
     data.internalEffects = foundry.utils.deepClone(settings.internalEffects);
@@ -150,28 +165,30 @@ export default class ConfigureSettings extends FormApplication {
     data.staticCacheFile = settings.staticCacheFile;
     data.stackStatusConfig = settings.stackStatusConfig;
     data.mergeGroup = settings.mergeGroup;
-    data.customImageCategories = settings.customImageCategories.join(',');
+    data.customImageCategories = settings.customImageCategories.join(",");
     data.disableEffectIcons = settings.disableEffectIcons;
     data.displayEffectIconsOnHover = settings.displayEffectIconsOnHover;
     data.filterEffectIcons = settings.filterEffectIcons;
     data.hideElevationTooltip = settings.hideElevationTooltip;
     data.hideTokenBorder = settings.hideTokenBorder;
     data.filterCustomEffectIcons = settings.filterCustomEffectIcons;
-    data.filterIconList = settings.filterIconList.join(',');
+    data.filterIconList = settings.filterIconList.join(",");
     data.tilesEnabled = settings.tilesEnabled;
     data.updateTokenProto = settings.updateTokenProto;
     data.imgNameContainsDimensions = settings.imgNameContainsDimensions;
     data.imgNameContainsFADimensions = settings.imgNameContainsFADimensions;
     data.playVideoOnHover = settings.playVideoOnHover;
     data.pauseVideoOnHoverOut = settings.pauseVideoOnHoverOut;
-    data.disableImageChangeOnPolymorphed = settings.disableImageChangeOnPolymorphed;
-    data.disableImageUpdateOnNonPrototype = settings.disableImageUpdateOnNonPrototype;
+    data.disableImageChangeOnPolymorphed =
+      settings.disableImageChangeOnPolymorphed;
+    data.disableImageUpdateOnNonPrototype =
+      settings.disableImageUpdateOnNonPrototype;
     data.disableTokenUpdateAnimation = settings.disableTokenUpdateAnimation;
     data.evaluateOverlayOnHover = settings.evaluateOverlayOnHover;
 
     // Controls
-    data.pathfinder = ['pf1e', 'pf2e'].includes(game.system.id);
-    data.dnd5e = game.system.id === 'dnd5e';
+    data.pathfinder = ["pf1e", "pf2e"].includes(game.system.id);
+    data.dnd5e = game.system.id === "dnd5e";
 
     return data;
   }
@@ -184,78 +201,118 @@ export default class ConfigureSettings extends FormApplication {
 
     // Search Paths
     super.activateListeners(html);
-    html.find('a.create-path').click(this._onCreatePath.bind(this));
-    html.on('input', '.searchSource', this._onSearchSourceTextChange.bind(this));
-    $(html).on('click', 'a.delete-path', this._onDeletePath.bind(this));
-    $(html).on('click', 'a.convert-imgur', this._onConvertImgurPath.bind(this));
-    $(html).on('click', 'a.convert-json', this._onConvertJsonPath.bind(this));
-    $(html).on('click', '.path-image.source-icon a', this._onBrowseFolder.bind(this));
-    $(html).on('click', 'a.select-category', showPathSelectCategoryDialog.bind(this));
-    $(html).on('click', 'a.select-config', showPathSelectConfigForm.bind(this));
+    html.querySelector("a.create-path").click(this._onCreatePath.bind(this));
+    html.on(
+      "input",
+      ".searchSource",
+      this._onSearchSourceTextChange.bind(this),
+    );
+    html.on("click", "a.delete-path", this._onDeletePath.bind(this));
+    html.on("click", "a.convert-imgur", this._onConvertImgurPath.bind(this));
+    html.on("click", "a.convert-json", this._onConvertJsonPath.bind(this));
+    html.on(
+      "click",
+      ".path-image.source-icon a",
+      this._onBrowseFolder.bind(this),
+    );
+    html.on(
+      "click",
+      "a.select-category",
+      showPathSelectCategoryDialog.bind(this),
+    );
+    html.on("click", "a.select-config", showPathSelectConfigForm.bind(this));
 
     // Search Filters
-    html.on('input', 'input.filterRegex', this._validateRegex.bind(this));
+    html.on("input", "input.filterRegex", this._validateRegex.bind(this));
 
     // Active Effects
-    const disableEffectIcons = html.find('[name="disableEffectIcons"]');
-    const filterEffectIcons = html.find('[name="filterEffectIcons"]');
+    const disableEffectIcons = html.querySelector(
+      '[name="disableEffectIcons"]',
+    );
+    const filterEffectIcons = html.querySelector('[name="filterEffectIcons"]');
     disableEffectIcons
-      .on('change', (e) => {
-        if (e.target.checked) filterEffectIcons.prop('checked', false);
+      .on("change", (e) => {
+        if (e.target.checked) filterEffectIcons.prop("checked", false);
       })
-      .trigger('change');
-    filterEffectIcons.on('change', (e) => {
-      if (e.target.checked) disableEffectIcons.prop('checked', false);
+      .trigger("change");
+    filterEffectIcons.on("change", (e) => {
+      if (e.target.checked) disableEffectIcons.prop("checked", false);
     });
 
     // Algorithm
-    const algorithmTab = $(html).find('div[data-tab="searchAlgorithm"]');
+    const algorithmTab = html.find('div[data-tab="searchAlgorithm"]');
     algorithmTab.find(`input[name="algorithm.exact"]`).change((e) => {
-      $(e.target).closest('form').find('input[name="algorithm.fuzzy"]').prop('checked', !e.target.checked);
+      e.target
+        .closest("form")
+        .find('input[name="algorithm.fuzzy"]')
+        .prop("checked", !e.target.checked);
     });
     algorithmTab.find(`input[name="algorithm.fuzzy"]`).change((e) => {
-      $(e.target).closest('form').find('input[name="algorithm.exact"]').prop('checked', !e.target.checked);
+      e.target
+        .closest("form")
+        .find('input[name="algorithm.exact"]')
+        .prop("checked", !e.target.checked);
     });
     algorithmTab.find('input[name="algorithm.fuzzyThreshold"]').change((e) => {
-      $(e.target).siblings('.token-variants-range-value').html(`${e.target.value}%`);
+      e.target
+        .siblings(".token-variants-range-value")
+        .html(`${e.target.value}%`);
     });
 
     // Randomizer
-    const tokenCreate = html.find('input[name="randomizer.tokenCreate"]');
-    const tokenCopyPaste = html.find('input[name="randomizer.tokenCopyPaste"]');
-    const tokenToPortrait = html.find('input[name="randomizer.tokenToPortrait"]');
+    const tokenCreate = html.querySelector(
+      'input[name="randomizer.tokenCreate"]',
+    );
+    const tokenCopyPaste = html.querySelector(
+      'input[name="randomizer.tokenCopyPaste"]',
+    );
+    const tokenToPortrait = html.querySelector(
+      'input[name="randomizer.tokenToPortrait"]',
+    );
     const _toggle = () => {
-      tokenToPortrait.prop('disabled', !(tokenCreate.is(':checked') || tokenCopyPaste.is(':checked')));
+      tokenToPortrait.prop(
+        "disabled",
+        !(tokenCreate.is(":checked") || tokenCopyPaste.is(":checked")),
+      );
     };
     tokenCreate.change(_toggle);
     tokenCopyPaste.change(_toggle);
 
-    const diffImages = html.find('input[name="randomizer.diffImages"]');
-    const syncImages = html.find('input[name="randomizer.syncImages"]');
+    const diffImages = html.querySelector(
+      'input[name="randomizer.diffImages"]',
+    );
+    const syncImages = html.querySelector(
+      'input[name="randomizer.syncImages"]',
+    );
     diffImages.change(() => {
-      syncImages.prop('disabled', !diffImages.is(':checked'));
-      tokenToPortrait.prop('disabled', diffImages.is(':checked'));
+      syncImages.prop("disabled", !diffImages.is(":checked"));
+      tokenToPortrait.prop("disabled", diffImages.is(":checked"));
     });
 
     // Token HUD
-    html.find('input[name="worldHud.updateActorImage"]').change((event) => {
-      $(event.target)
-        .closest('form')
-        .find('input[name="worldHud.useNameSimilarity"]')
-        .prop('disabled', !event.target.checked);
-    });
+    html
+      .querySelector('input[name="worldHud.updateActorImage"]')
+      .change((event) => {
+        event.target
+          .closest("form")
+          .find('input[name="worldHud.useNameSimilarity"]')
+          .prop("disabled", !event.target.checked);
+      });
 
     // Static Cache
-    html.find('button.token-variants-cache-images').click((event) => {
-      const tab = $(event.target).closest('.tab');
+    html.querySelector("button.token-variants-cache-images").click((event) => {
+      const tab = event.target.closest(".tab");
       const staticOn = tab.find('input[name="staticCache"]');
       const staticFile = tab.find('input[name="staticCacheFile"]');
-      cacheImages({ staticCache: staticOn.is(':checked'), staticCacheFile: staticFile.val() });
+      cacheImages({
+        staticCache: staticOn.is(":checked"),
+        staticCacheFile: staticFile.val(),
+      });
     });
 
     // Global Mappings
-    html.find('button.token-variants-global-mapping').click(() => {
-      const setting = game.settings.get('core', DefaultTokenConfig.SETTING);
+    html.querySelector("button.token-variants-global-mapping").click(() => {
+      const setting = game.settings.get("core", DefaultTokenConfig.SETTING);
       const data = new foundry.data.PrototypeToken(setting);
       const token = new TokenDocument(data, { actor: null });
       new EffectMappingForm(token, { globalMappings: true }).render(true);
@@ -267,9 +324,9 @@ export default class ConfigureSettings extends FormApplication {
    */
   async _validateRegex(event) {
     if (this._validRegex(event.target.value)) {
-      event.target.style.backgroundColor = '';
+      event.target.style.backgroundColor = "";
     } else {
-      event.target.style.backgroundColor = '#ff7066';
+      event.target.style.backgroundColor = "#ff7066";
     }
   }
 
@@ -288,16 +345,20 @@ export default class ConfigureSettings extends FormApplication {
    * Open a FilePicker so the user can select a local folder to use as an image source
    */
   async _onBrowseFolder(event) {
-    const pathInput = $(event.target).closest('.table-row').find('.path-text input');
-    const sourceInput = $(event.target).closest('.table-row').find('.path-source input');
+    const pathInput = event.target
+      .closest(".table-row")
+      .find(".path-text input");
+    const sourceInput = event.target
+      .closest(".table-row")
+      .find(".path-source input");
 
-    let activeSource = sourceInput.val() || 'data';
+    let activeSource = sourceInput.val() || "data";
     let current = pathInput.val();
 
-    if (activeSource.startsWith('s3:')) {
-      const bucketName = activeSource.replace('s3:', '');
+    if (activeSource.startsWith("s3:")) {
+      const bucketName = activeSource.replace("s3:", "");
       current = `${game.data.files.s3?.endpoint.protocol}//${bucketName}.${game.data.files.s3?.endpoint.host}/${current}`;
-    } else if (activeSource.startsWith('rolltable')) {
+    } else if (activeSource.startsWith("rolltable")) {
       let content = `<select style="width: 100%;" name="table-name" id="output-tableKey">`;
 
       game.tables.forEach((rollTable) => {
@@ -312,23 +373,25 @@ export default class ConfigureSettings extends FormApplication {
         buttons: {
           yes: {
             icon: "<i class='fas fa-check'></i>",
-            label: 'Select',
+            label: "Select",
             callback: (html) => {
               pathInput.val();
-              const tableName = html.find("select[name='table-name']").val();
+              const tableName = html
+                .querySelector("select[name='table-name']")
+                .val();
               pathInput.val(tableName);
             },
           },
         },
-        default: 'yes',
+        default: "yes",
       }).render(true);
       return;
     }
 
-    if (activeSource === 'json') {
+    if (activeSource === "json") {
       new FilePicker({
-        type: 'text',
-        activeSource: 'data',
+        type: "text",
+        activeSource: "data",
         current: current,
         callback: (path, fp) => {
           pathInput.val(path);
@@ -336,12 +399,12 @@ export default class ConfigureSettings extends FormApplication {
       }).render(true);
     } else {
       new FilePicker({
-        type: 'folder',
+        type: "folder",
         activeSource: activeSource,
         current: current,
         callback: (path, fp) => {
           pathInput.val(fp.result.target);
-          if (fp.activeSource === 's3') {
+          if (fp.activeSource === "s3") {
             sourceInput.val(`s3:${fp.result.bucket}`);
           } else {
             sourceInput.val(fp.activeSource);
@@ -357,23 +420,34 @@ export default class ConfigureSettings extends FormApplication {
   async _onConvertImgurPath(event) {
     event.preventDefault();
 
-    const pathInput = $(event.target).closest('.table-row').find('.path-text input');
-    const sourceInput = $(event.target).closest('.table-row').find('.path-source input');
+    const pathInput = event.target
+      .closest(".table-row")
+      .find(".path-text input");
+    const sourceInput = event.target
+      .closest(".table-row")
+      .find(".path-source input");
 
     const albumHash = pathInput.val();
-    const imgurClientId = TVA_CONFIG.imgurClientId === '' ? 'df9d991443bb222' : TVA_CONFIG.imgurClientId;
+    const imgurClientId =
+      TVA_CONFIG.imgurClientId === ""
+        ? "df9d991443bb222"
+        : TVA_CONFIG.imgurClientId;
 
-    fetch('https://api.imgur.com/3/gallery/album/' + albumHash, {
+    fetch("https://api.imgur.com/3/gallery/album/" + albumHash, {
       headers: {
-        Authorization: 'Client-ID ' + imgurClientId,
-        Accept: 'application/json',
+        Authorization: "Client-ID " + imgurClientId,
+        Accept: "application/json",
       },
     })
       .then((response) => response.json())
       .then(
         async function (result) {
-          if (!result.success && location.hostname === 'localhost') {
-            ui.notifications.warn(game.i18n.format('token-variants.notifications.warn.imgur-localhost'));
+          if (!result.success && location.hostname === "localhost") {
+            ui.notifications.warn(
+              game.i18n.format(
+                "token-variants.notifications.warn.imgur-localhost",
+              ),
+            );
             return;
           }
 
@@ -383,10 +457,10 @@ export default class ConfigureSettings extends FormApplication {
           data.images.forEach((img, i) => {
             resultsArray.push({
               type: 0,
-              text: img.title ?? img.description ?? '',
+              text: img.title ?? img.description ?? "",
               weight: 1,
               range: [i + 1, i + 1],
-              collection: 'Text',
+              collection: "Text",
               drawn: false,
               img: img.link,
             });
@@ -394,18 +468,20 @@ export default class ConfigureSettings extends FormApplication {
 
           await RollTable.create({
             name: data.title,
-            description: 'Token Variant Art auto generated RollTable: https://imgur.com/gallery/' + albumHash,
+            description:
+              "Token Variant Art auto generated RollTable: https://imgur.com/gallery/" +
+              albumHash,
             results: resultsArray,
             replacement: true,
             displayRoll: true,
-            img: 'modules/token-variants/img/token-images.svg',
+            img: "modules/token-variants/token-variants/img/token-images.svg",
           });
 
           pathInput.val(data.title);
-          sourceInput.val('rolltable').trigger('input');
-        }.bind(this)
+          sourceInput.val("rolltable").trigger("input");
+        }.bind(this),
       )
-      .catch((error) => console.warn('TVA | ', error));
+      .catch((error) => console.warn("TVA | ", error));
   }
 
   /**
@@ -414,21 +490,29 @@ export default class ConfigureSettings extends FormApplication {
   async _onConvertJsonPath(event) {
     event.preventDefault();
 
-    const pathInput = $(event.target).closest('.table-row').find('.path-text input');
-    const sourceInput = $(event.target).closest('.table-row').find('.path-source input');
+    const pathInput = event.target
+      .closest(".table-row")
+      .find(".path-text input");
+    const sourceInput = event.target
+      .closest(".table-row")
+      .find(".path-source input");
 
     const jsonPath = pathInput.val();
 
     fetch(jsonPath, {
       headers: {
-        Accept: 'application/json',
+        Accept: "application/json",
       },
     })
       .then((response) => response.json())
       .then(
         async function (result) {
           if (!result.length > 0) {
-            ui.notifications.warn(game.i18n.format('token-variants.notifications.warn.json-localhost'));
+            ui.notifications.warn(
+              game.i18n.format(
+                "token-variants.notifications.warn.json-localhost",
+              ),
+            );
             return;
           }
 
@@ -439,10 +523,10 @@ export default class ConfigureSettings extends FormApplication {
           data.forEach((img, i) => {
             resultsArray.push({
               type: 0,
-              text: img.name ?? '',
+              text: img.name ?? "",
               weight: 1,
               range: [i + 1, i + 1],
-              collection: 'Text',
+              collection: "Text",
               drawn: false,
               img: img.path,
             });
@@ -450,18 +534,19 @@ export default class ConfigureSettings extends FormApplication {
 
           await RollTable.create({
             name: data.title,
-            description: 'Token Variant Art auto generated RollTable: ' + jsonPath,
+            description:
+              "Token Variant Art auto generated RollTable: " + jsonPath,
             results: resultsArray,
             replacement: true,
             displayRoll: true,
-            img: 'modules/token-variants/img/token-images.svg',
+            img: "modules/token-variants/token-variants/img/token-images.svg",
           });
 
           pathInput.val(data.title);
-          sourceInput.val('rolltable').trigger('input');
-        }.bind(this)
+          sourceInput.val("rolltable").trigger("input");
+        }.bind(this),
       )
-      .catch((error) => console.warn('TVA | ', error));
+      .catch((error) => console.warn("TVA | ", error));
   }
 
   /**
@@ -469,11 +554,11 @@ export default class ConfigureSettings extends FormApplication {
    */
   async _onCreatePath(event) {
     event.preventDefault();
-    const table = $(event.currentTarget).closest('.token-variant-table');
+    const table = event.currentTarget.closest(".token-variant-table");
     let row = `
     <li class="table-row flexrow">
         <div class="path-image source-icon">
-            <a><i class="${this._pathIcon('')}"></i></a>
+            <a><i class="${this._pathIcon("")}"></i></a>
         </div>
         <div class="path-source">
           <input class="searchSource" type="text" name="searchPaths.source" value="" placeholder="data"/>
@@ -512,46 +597,46 @@ export default class ConfigureSettings extends FormApplication {
 
   async _reIndexPaths(table) {
     table
-      .find('.path-source')
-      .find('input')
+      .find(".path-source")
+      .find("input")
       .each(function (index) {
-        $(this).attr('name', `searchPaths.${index}.source`);
+        this.attr("name", `searchPaths.${index}.source`);
       });
 
     table
-      .find('.path-text')
-      .find('input')
+      .find(".path-text")
+      .find("input")
       .each(function (index) {
-        $(this).attr('name', `searchPaths.${index}.text`);
+        this.attr("name", `searchPaths.${index}.text`);
       });
 
     table
-      .find('.path-cache')
-      .find('input')
+      .find(".path-cache")
+      .find("input")
       .each(function (index) {
-        $(this).attr('name', `searchPaths.${index}.cache`);
+        this.attr("name", `searchPaths.${index}.cache`);
       });
     table
-      .find('.path-category')
-      .find('input')
+      .find(".path-category")
+      .find("input")
       .each(function (index) {
-        $(this).attr('name', `searchPaths.${index}.types`);
+        this.attr("name", `searchPaths.${index}.types`);
       });
     table
-      .find('.path-config')
-      .find('input')
+      .find(".path-config")
+      .find("input")
       .each(function (index) {
-        $(this).attr('name', `searchPaths.${index}.config`);
+        this.attr("name", `searchPaths.${index}.config`);
       });
   }
 
   async _onDeletePath(event) {
     event.preventDefault();
 
-    const li = event.currentTarget.closest('.table-row');
+    const li = event.currentTarget.closest(".table-row");
     li.remove();
 
-    const table = $(event.currentTarget).closest('.token-variant-table');
+    const table = event.currentTarget.closest(".token-variant-table");
     this._reIndexPaths(table);
 
     this.setPosition(); // Auto-resize window
@@ -559,35 +644,45 @@ export default class ConfigureSettings extends FormApplication {
 
   async _onSearchSourceTextChange(event) {
     const image = this._pathIcon(event.target.value);
-    const imgur = image === 'fas fa-info';
-    const json = image === 'fas fa-brackets-curly';
+    const imgur = image === "fas fa-info";
+    const json = image === "fas fa-brackets-curly";
 
-    const imgurControl = $(event.currentTarget).closest('.table-row').find('.imgur-control');
-    if (imgur) imgurControl.addClass('active');
-    else imgurControl.removeClass('active');
+    const imgurControl = event.currentTarget
+      .closest(".table-row")
+      .find(".imgur-control");
+    if (imgur) imgurControl.addClass("active");
+    else imgurControl.removeClass("active");
 
-    const jsonControl = $(event.currentTarget).closest('.table-row').find('.json-control');
-    if (json) jsonControl.addClass('active');
-    else jsonControl.removeClass('active');
+    const jsonControl = event.currentTarget
+      .closest(".table-row")
+      .find(".json-control");
+    if (json) jsonControl.addClass("active");
+    else jsonControl.removeClass("active");
 
-    $(event.currentTarget).closest('.table-row').find('.path-image i').attr('class', image);
+    event.currentTarget
+      .closest(".table-row")
+      .find(".path-image i")
+      .attr("class", image);
   }
 
   // Return icon appropriate for the path provided
   _pathIcon(source) {
-    if (source.startsWith('s3')) {
-      return 'fas fa-database';
-    } else if (source.startsWith('rolltable')) {
-      return 'fas fa-dice';
-    } else if (source.startsWith('forgevtt') || source.startsWith('forge-bazaar')) {
-      return 'fas fa-hammer';
-    } else if (source.startsWith('imgur')) {
-      return 'fas fa-info';
-    } else if (source.startsWith('json')) {
-      return 'fas fa-brackets-curly';
+    if (source.startsWith("s3")) {
+      return "fas fa-database";
+    } else if (source.startsWith("rolltable")) {
+      return "fas fa-dice";
+    } else if (
+      source.startsWith("forgevtt") ||
+      source.startsWith("forge-bazaar")
+    ) {
+      return "fas fa-hammer";
+    } else if (source.startsWith("imgur")) {
+      return "fas fa-info";
+    } else if (source.startsWith("json")) {
+      return "fas fa-brackets-curly";
     }
 
-    return 'fas fa-folder';
+    return "fas fa-folder";
   }
 
   /**
@@ -599,10 +694,12 @@ export default class ConfigureSettings extends FormApplication {
     formData = foundry.utils.expandObject(formData);
 
     // Search Paths
-    settings.searchPaths = formData.hasOwnProperty('searchPaths') ? Object.values(formData.searchPaths) : [];
+    settings.searchPaths = formData.hasOwnProperty("searchPaths")
+      ? Object.values(formData.searchPaths)
+      : [];
     settings.searchPaths.forEach((path) => {
-      if (!path.source) path.source = 'data';
-      if (path.types) path.types = path.types.split(',');
+      if (!path.source) path.source = "data";
+      if (path.types) path.types = path.types.split(",");
       else path.types = [];
       if (path.config) {
         try {
@@ -615,14 +712,20 @@ export default class ConfigureSettings extends FormApplication {
 
     // Search Filters
     for (const filter in formData.searchFilters) {
-      if (!this._validRegex(formData.searchFilters[filter].regex)) formData.searchFilters[filter].regex = '';
+      if (!this._validRegex(formData.searchFilters[filter].regex))
+        formData.searchFilters[filter].regex = "";
     }
     foundry.utils.mergeObject(settings.searchFilters, formData.searchFilters);
 
     // Algorithm
     formData.algorithm.fuzzyLimit = parseInt(formData.algorithm.fuzzyLimit);
-    if (isNaN(formData.algorithm.fuzzyLimit) || formData.algorithm.fuzzyLimit < 1) formData.algorithm.fuzzyLimit = 50;
-    formData.algorithm.fuzzyThreshold = (100 - formData.algorithm.fuzzyThreshold) / 100;
+    if (
+      isNaN(formData.algorithm.fuzzyLimit) ||
+      formData.algorithm.fuzzyLimit < 1
+    )
+      formData.algorithm.fuzzyLimit = 50;
+    formData.algorithm.fuzzyThreshold =
+      (100 - formData.algorithm.fuzzyThreshold) / 100;
     foundry.utils.mergeObject(settings.algorithm, formData.algorithm);
 
     // Randomizer
@@ -638,7 +741,10 @@ export default class ConfigureSettings extends FormApplication {
     foundry.utils.mergeObject(settings.worldHud, formData.worldHud);
 
     // Internal Effects
-    foundry.utils.mergeObject(settings.internalEffects, formData.internalEffects);
+    foundry.utils.mergeObject(
+      settings.internalEffects,
+      formData.internalEffects,
+    );
 
     // Misc
     foundry.utils.mergeObject(settings, {
@@ -654,8 +760,8 @@ export default class ConfigureSettings extends FormApplication {
       tilesEnabled: formData.tilesEnabled,
       stackStatusConfig: formData.stackStatusConfig,
       mergeGroup: formData.mergeGroup,
-      customImageCategories: (formData.customImageCategories || '')
-        .split(',')
+      customImageCategories: (formData.customImageCategories || "")
+        .split(",")
         .map((t) => t.trim())
         .filter((t) => t),
       disableEffectIcons: formData.disableEffectIcons,
@@ -664,8 +770,8 @@ export default class ConfigureSettings extends FormApplication {
       hideElevationTooltip: formData.hideElevationTooltip,
       hideTokenBorder: formData.hideTokenBorder,
       filterCustomEffectIcons: formData.filterCustomEffectIcons,
-      filterIconList: (formData.filterIconList || '')
-        .split(',')
+      filterIconList: (formData.filterIconList || "")
+        .split(",")
         .map((t) => t.trim())
         .filter((t) => t),
       updateTokenProto: formData.updateTokenProto,
@@ -674,7 +780,8 @@ export default class ConfigureSettings extends FormApplication {
       playVideoOnHover: formData.playVideoOnHover,
       pauseVideoOnHoverOut: formData.pauseVideoOnHoverOut,
       disableImageChangeOnPolymorphed: formData.disableImageChangeOnPolymorphed,
-      disableImageUpdateOnNonPrototype: formData.disableImageUpdateOnNonPrototype,
+      disableImageUpdateOnNonPrototype:
+        formData.disableImageUpdateOnNonPrototype,
       disableTokenUpdateAnimation: formData.disableTokenUpdateAnimation,
       evaluateOverlayOnHover: formData.evaluateOverlayOnHover,
     });
@@ -705,31 +812,47 @@ export function mergeObjectFix(
     inplace = true,
     enforceTypes = false,
   } = {},
-  _d = 0
+  _d = 0,
 ) {
   other = other || {};
   if (!(original instanceof Object) || !(other instanceof Object)) {
-    throw new Error('One of original or other are not Objects!');
+    throw new Error("One of original or other are not Objects!");
   }
-  const options = { insertKeys, insertValues, overwrite, recursive, inplace, enforceTypes };
+  const options = {
+    insertKeys,
+    insertValues,
+    overwrite,
+    recursive,
+    inplace,
+    enforceTypes,
+  };
 
   // Special handling at depth 0
   if (_d === 0) {
     if (!inplace) original = foundry.utils.deepClone(original);
-    if (Object.keys(original).some((k) => /\./.test(k))) original = foundry.utils.expandObject(original);
-    if (Object.keys(other).some((k) => /\./.test(k))) other = foundry.utils.expandObject(other);
+    if (Object.keys(original).some((k) => /\./.test(k)))
+      original = foundry.utils.expandObject(original);
+    if (Object.keys(other).some((k) => /\./.test(k)))
+      other = foundry.utils.expandObject(other);
   }
 
   // Iterate over the other object
   for (let k of Object.keys(other)) {
     const v = other[k];
-    if (original.hasOwnProperty(k)) _mergeUpdate(original, k, v, options, _d + 1);
+    if (original.hasOwnProperty(k))
+      _mergeUpdate(original, k, v, options, _d + 1);
     else _mergeInsertFix(original, k, v, options, _d + 1);
   }
   return original;
 }
 
-function _mergeInsertFix(original, k, v, { insertKeys, insertValues } = {}, _d) {
+function _mergeInsertFix(
+  original,
+  k,
+  v,
+  { insertKeys, insertValues } = {},
+  _d,
+) {
   // Recursively create simple objects
   if (v?.constructor === Object && insertKeys) {
     original[k] = mergeObjectFix({}, v, { insertKeys: true, inplace: true });
@@ -737,7 +860,7 @@ function _mergeInsertFix(original, k, v, { insertKeys, insertValues } = {}, _d) 
   }
 
   // Delete a key
-  if (k.startsWith('-=')) {
+  if (k.startsWith("-=")) {
     delete original[k.slice(2)];
     return;
   }
@@ -747,13 +870,19 @@ function _mergeInsertFix(original, k, v, { insertKeys, insertValues } = {}, _d) 
   if (canInsert) original[k] = v;
 }
 
-function _mergeUpdate(original, k, v, { insertKeys, insertValues, enforceTypes, overwrite, recursive } = {}, _d) {
+function _mergeUpdate(
+  original,
+  k,
+  v,
+  { insertKeys, insertValues, enforceTypes, overwrite, recursive } = {},
+  _d,
+) {
   const x = original[k];
   const tv = foundry.utils.getType(v);
   const tx = foundry.utils.getType(x);
 
   // Recursively merge an inner object
-  if (tv === 'Object' && tx === 'Object' && recursive) {
+  if (tv === "Object" && tx === "Object" && recursive) {
     return mergeObjectFix(
       x,
       v,
@@ -764,13 +893,13 @@ function _mergeUpdate(original, k, v, { insertKeys, insertValues, enforceTypes, 
         inplace: true,
         enforceTypes: enforceTypes,
       },
-      _d
+      _d,
     );
   }
 
   // Overwrite an existing value
   if (overwrite) {
-    if (tx !== 'undefined' && tv !== tx && enforceTypes) {
+    if (tx !== "undefined" && tv !== tx && enforceTypes) {
       throw new Error(`Mismatched data types encountered during object merge.`);
     }
     original[k] = v;

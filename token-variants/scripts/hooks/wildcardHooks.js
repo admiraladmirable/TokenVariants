@@ -19,20 +19,20 @@ export function registerWildcardHooks() {
 }
 
 async function _renderTokenConfig(config, html) {
-  const checkboxRandomize = html.find('input[name="randomImg"]');
-  if (checkboxRandomize.length && !html.find('.token-variants-proto').length) {
+  const checkboxRandomize = html.querySelector('input[name="randomImg"]');
+  if (checkboxRandomize.length && !html.querySelector('.token-variants-proto').length) {
     const defaultImg =
       config.actor?.prototypeToken?.flags['token-variants']?.['randomImgDefault'] ||
       config.actor?.prototypeToken?.flags['token-hud-wildcard']?.['default'] ||
       '';
 
-    const field = await renderTemplate('/modules/token-variants/templates/protoTokenElement.html', {
+    const field = await renderTemplate('/modules/token-variants/token-variants/token-variants/templates/protoTokenElement.html', {
       defaultImg,
       disableHUDButton: config.object?.getFlag('token-variants', 'disableHUDButton'),
     });
     checkboxRandomize.closest('.form-group').after(field);
 
-    const tvaFieldset = html.find('.token-variants-proto');
+    const tvaFieldset = html.querySelector('.token-variants-proto');
 
     tvaFieldset.find('button').click((event) => {
       event.preventDefault();

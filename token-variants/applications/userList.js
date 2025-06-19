@@ -14,7 +14,7 @@ export default class UserList extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: 'token-variants-user-list',
       classes: ['sheet'],
-      template: 'modules/token-variants/templates/userList.html',
+      template: 'modules/token-variants/token-variants/templates/userList.html',
       resizable: false,
       minimizable: false,
       title: 'User To Image',

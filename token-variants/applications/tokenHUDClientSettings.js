@@ -9,7 +9,7 @@ export default class TokenHUDClientSettings extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: 'token-variants-hud-settings',
       classes: ['sheet'],
-      template: 'modules/token-variants/templates/tokenHUDClientSettings.html',
+      template: 'modules/token-variants/token-variants/templates/tokenHUDClientSettings.html',
       resizable: false,
       minimizable: false,
       title: '',
