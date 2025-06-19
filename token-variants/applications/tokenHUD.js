@@ -94,9 +94,12 @@ async function _onButtonClick(event, token) {
   // De-activate 'Status Effects'
   button
     .closest("div.right")
-    .find("div.control-icon.effects")
+    .querySelector("div.control-icon.effects")
     .removeClass("active");
-  button.closest("div.right").find(".status-effects").removeClass("active");
+  button
+    .closest("div.right")
+    .querySelector(".status-effects")
+    .removeClass("active");
 
   // Remove contextmenu
   button.querySelector(".contextmenu").remove();
@@ -137,13 +140,13 @@ function _onButtonRightClick(event, hud, html, token) {
 
     // Register contextmenu listeners
     contextMenu
-      .find(".token-variants-side-search")
+      .querySelector(".token-variants-side-search")
       .on("keyup", (event) => _onImageSearchKeyUp(event, token))
       .on("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
       });
-    contextMenu.find(".flags").click((event) => {
+    contextMenu.querySelector(".flags").click((event) => {
       const tkn = canvas.tokens.get(token._id);
       if (tkn) {
         event.preventDefault();
@@ -151,7 +154,7 @@ function _onButtonRightClick(event, hud, html, token) {
         new FlagsConfig(tkn).render(true);
       }
     });
-    contextMenu.find(".file-picker").click(async (event) => {
+    contextMenu.querySelector(".file-picker").click(async (event) => {
       event.preventDefault();
       event.stopPropagation();
       new FilePicker({
@@ -173,10 +176,10 @@ function _onButtonRightClick(event, hud, html, token) {
         },
       }).render(true);
     });
-    contextMenu.find(".effectConfig").click((event) => {
+    contextMenu.querySelector(".effectConfig").click((event) => {
       new EffectMappingForm(token).render(true);
     });
-    contextMenu.find(".randomizerConfig").click((event) => {
+    contextMenu.querySelector(".randomizerConfig").click((event) => {
       new RandomizerConfig(token).render(true);
     });
   }
@@ -197,11 +200,11 @@ function _deactivateTokenVariantsSideSelector(event) {
 
   event.target
     .closest("div.right")
-    .find('.control-icon[data-action="token-variants-side-selector"]')
+    .querySelector('.control-icon[data-action="token-variants-side-selector"]')
     .removeClass("active");
   event.target
     .closest("div.right")
-    .find(".token-variants-wrap")
+    .querySelector(".token-variants-wrap")
     .removeClass("active");
 }
 
@@ -219,7 +222,9 @@ async function renderSideSelect(token, searchText = "", fp_files = null) {
   const pushImage = (img) => {
     if (imageDuplicates.has(img.path)) {
       if (
-        !images.find((obj) => obj.path === img.path && obj.name === img.name)
+        !images.querySelector(
+          (obj) => obj.path === img.path && obj.name === img.name,
+        )
       ) {
         images.push(img);
       }
@@ -420,7 +425,7 @@ async function renderSideSelect(token, searchText = "", fp_files = null) {
     const vid = isVideo(imageObj.path);
 
     const hasConfig = Boolean(
-      tokenConfigs.find(
+      tokenConfigs.querySelector(
         (config) =>
           config.tvImgSrc === imageObj.path &&
           config.tvImgName === imageObj.name,
@@ -478,7 +483,7 @@ async function renderSideSelect(token, searchText = "", fp_files = null) {
   );
 
   // Activate listeners
-  sideSelect.find("video").hover(
+  sideSelect.querySelector("video").hover(
     function () {
       if (TVA_CONFIG.playVideoOnHover) {
         this.play();
@@ -494,12 +499,12 @@ async function renderSideSelect(token, searchText = "", fp_files = null) {
     },
   );
   sideSelect
-    .find(".token-variants-button-select")
+    .querySelector(".token-variants-button-select")
     .click((event) => _onImageClick(event, token._id));
 
   if (FULL_ACCESS) {
     sideSelect
-      .find(".token-variants-button-select")
+      .querySelector(".token-variants-button-select")
       .on("contextmenu", (event) => _onImageRightClick(event, token._id));
   }
 
@@ -510,7 +515,9 @@ async function _onImageClick(event, tokenId) {
   event.preventDefault();
   event.stopPropagation();
 
-  const token = canvas.tokens.controlled.find((t) => t.document.id === tokenId);
+  const token = canvas.tokens.controlled.querySelector(
+    (t) => t.document.id === tokenId,
+  );
   if (!token) return;
 
   const worldHudSettings = TVA_CONFIG.worldHud;
@@ -568,7 +575,9 @@ async function _onImageClick(event, tokenId) {
 async function _onImageRightClick(event, tokenId) {
   event.preventDefault();
   event.stopPropagation();
-  let token = canvas.tokens.controlled.find((t) => t.document.id === tokenId);
+  let token = canvas.tokens.controlled.querySelector(
+    (t) => t.document.id === tokenId,
+  );
   if (!token) return;
 
   const imgButton = event.target.closest(".token-variants-button-select");
@@ -585,7 +594,7 @@ async function _onImageRightClick(event, tokenId) {
       const [title, style] = genTitleAndStyle(mappings, img, name);
       imgButton
         .closest(".token-variants-wrap")
-        .find(`.token-variants-button-select[data-name='${img}']`)
+        .querySelector(`.token-variants-button-select[data-name='${img}']`)
         .css("box-shadow", style)
         .prop("title", title);
     };
@@ -685,7 +694,7 @@ function activateStatusEffectListeners(token) {
       '.control-icon[data-action="effects"]',
     );
     if (iconEffects) {
-      iconEffects.find("img:first").click((event) => {
+      iconEffects.querySelector("img:first").click((event) => {
         event.preventDefault();
         if (keyPressed("config")) {
           event.stopPropagation();
@@ -698,7 +707,7 @@ function activateStatusEffectListeners(token) {
       '.control-icon[data-action="visibility"]',
     );
     if (iconVisibility) {
-      iconVisibility.find("img").click((event) => {
+      iconVisibility.querySelector("img").click((event) => {
         event.preventDefault();
         if (keyPressed("config")) {
           event.stopPropagation();
@@ -716,7 +725,7 @@ function activateStatusEffectListeners(token) {
       '.control-icon[data-action="combat"]',
     );
     if (iconCombat) {
-      iconCombat.find("img").click((event) => {
+      iconCombat.querySelector("img").click((event) => {
         event.preventDefault();
         if (keyPressed("config")) {
           event.stopPropagation();
@@ -732,7 +741,7 @@ function activateStatusEffectListeners(token) {
 
     const statusEffects = document.querySelector(".status-effects");
     if (statusEffects) {
-      statusEffects.find("img").click((event) => {
+      statusEffects.querySelector("img").click((event) => {
         event.preventDefault();
         if (keyPressed("config")) {
           event.stopPropagation();
