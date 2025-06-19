@@ -11,6 +11,7 @@ import {
 import { showArtSelect } from "../token-variants.mjs";
 import { TVA_CONFIG, getSearchOptions } from "../scripts/settings.js";
 import { cacheImages } from "../scripts/search.js";
+import ElementBuilder from "../scripts/helpers/elementBuilder.js";
 
 function showButtonWithText(id, text) {
   const btn = document.getElementById(id);

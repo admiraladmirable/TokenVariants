@@ -11,6 +11,7 @@ import {
 import TokenCustomConfig from "./tokenCustomConfig.js";
 import EffectMappingForm from "./effectMappingForm.js";
 import { TVA_CONFIG } from "../scripts/settings.js";
+import ElementBuilder from "../scripts/helpers/elementBuilder.js";
 import UserList from "./userList.js";
 import FlagsConfig from "./flagsConfig.js";
 import RandomizerConfig from "./randomizerConfig.js";
